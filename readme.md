@@ -4,14 +4,21 @@ Tips and code to easily pass the computer networks practical exam ("Reti di calc
 You can find all this information distributed in various RFC.
 
 ## Usefull RFC:
-- //todo add
+- [RFC791](https://tools.ietf.org/html/rfc791) IP
+- [RFC792](https://tools.ietf.org/html/rfc792) ICMP
+- [RFC793](https://tools.ietf.org/html/rfc793) TCP
+- [RFC826](https://tools.ietf.org/html/rfc826) ARP
+- [RFC1945](https://tools.ietf.org/html/rfc1945) HTTP1
+- [RFC2616](https://tools.ietf.org/html/rfc2616) HTTP1.1
+
 
 ## Useful links
 - [Here](https://www.stefanoivancich.com/?p=1291) you can find a summary of the most important things to know to pass the exam. 
 Anyway, maybe is better to study more in depth every topic.
+- [C socket programming online book](http://alas.matf.bg.ac.rs/manuals/lspe/mode=1.html)
 
 
-## Something to understand before doing the past exams
+## Something to understand before trying the past exams
 
 An Ethernet frame (data link layer) contains an IP datagram (network layer) that can contains one of the following { tcp_segment (transport layer), icmp_packet } (for the purpose of this exam)
 
@@ -36,6 +43,8 @@ To transfer on the network is used Big endian. Most of the intel's cpus are litt
 <details><summary>Ethernet frame</summary>
 <p>
 
+![Ethernet frame](https://upload.wikimedia.org/wikipedia/commons/thumb/4/42/Ethernet_frame.svg/800px-Ethernet_frame.svg.png)
+
 ```c
 // Frame Ethernet
 struct eth_frame {
@@ -54,6 +63,8 @@ Thanks to the `type` we can understand where to forward it on the next level (2 
 #### IP datagram
 <details><summary>IP datagram</summary>
 <p>
+
+![Ip datagram](http://www.danzig.jct.ac.il/tcp-ip-lab/ibm-tutorial/3376f11.gif)
 
 Header length: check second half of `ver_ihl` attribute. Example: if it's '5', then the header length is 4 * 5 = 20 bytes.  
 //todo add image
@@ -82,6 +93,8 @@ struct ip_datagram{
 
 <details><summary>TCP segment</summary>
 <p>
+
+![tcp segment](https://i.ibb.co/WpSwRXL/Screen-Shot-2019-01-07-at-22-15-38.png)
 
 Header (as defined here) length: `20`
 ```c
