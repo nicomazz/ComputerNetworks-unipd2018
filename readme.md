@@ -18,7 +18,9 @@ An Ethernet frame (data link layer) contains an IP datagram (network layer) that
 #### Data types and endianess
 <details>
 <summary>Data types and endianess</summary>
+
 (depends on the architecture, but you can assume that the following is true for this exam)
+
 - `unsigned char` : 1 byte
 - `unsigned short`: 2 bytes
 - `unsiged int` : 4 bytes
