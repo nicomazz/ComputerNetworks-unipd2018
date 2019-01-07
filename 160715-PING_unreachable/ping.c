@@ -23,6 +23,16 @@ struct eth_frame {
 	char payload[1500];	//ARP o IP
 };
 
+//Pacchetto ICMP ECHO
+struct icmp_packet{
+	unsigned char type;
+	unsigned char code;
+	unsigned short checksum;
+	unsigned short id;
+	unsigned short seq;
+	char payload[128]; //Dati
+};
+
 // Datagramma IP
 struct ip_datagram{
 	unsigned char ver_ihl;
@@ -50,6 +60,8 @@ struct arp_packet{
 	unsigned char hdst[6];//IndirizzoHardware del destinatario della richiesta(in una richiesta è nullo)
 	unsigned char pdst[4];//IndirizzoIP del destinatario della richiesta
 };
+
+//Segmento TCP
 struct tcp_segment {
 	unsigned short s_port;
 	unsigned short d_port;
@@ -62,26 +74,21 @@ struct tcp_segment {
 	unsigned short urgp;
 	unsigned char payload[1000];
 };
-struct tcp_pseudo{
-	unsigned int ip_src, ip_dst;
-	unsigned char zeroes;
-	unsigned char proto;
-	unsigned short entire_len;
-	unsigned char tcp_segment[20];
-};
+
+
+
 //Prototipi di funzioni
 void crea_eth(struct eth_frame *e, unsigned char * src, unsigned char*dst,unsigned short type);
 void crea_arp(struct arp_packet* a,unsigned char *mymac,unsigned char *myip,unsigned char *dstip);
 void crea_ip( struct ip_datagram* ip, int payloadlen,unsigned char payloadtype,unsigned int ipdest );
+int crea_icmp_unreachable(struct icmp_packet * icmp, struct ip_datagram * ip,int tot_dimension);
 unsigned short checksum(unsigned char *buffer,int len);
 void stampabytes(unsigned char * buffer, int quanti);
 int trovamac(unsigned char *mac_incognito, unsigned char*dstip);
 
-//utils
-void print_ip(unsigned int ip);
-void print_ip_datagram(struct ip_datagram *ip);
-void print_eth_frame(struct eth_frame * f);
+void crea_icmp_reply(struct icmp_packet * icmp,int size);
 
+unsigned char old_ip_buffer[1500]; //to save ip headers
 
 int main(){
 	struct sockaddr_ll sll;	//Indirizzo ethernet mio
@@ -101,33 +108,26 @@ int main(){
 	  ovvero l'indice della tabella con tutto ciò che serve per gestire la comunicazione*/
 	s = socket(AF_PACKET, SOCK_RAW,htons(ETH_P_ALL));//AF_INET=IPv4, SOCK_RAW=non elaborato, htons(ETH_P_ALL)
 
+	//Se l'host è nella mia stessa sotto rete tengo il suo IP per cercalre l'indirizzo ethernet
+	//altrimenti uso l'indirizzo del mio gateway.
+	if ((*((unsigned int *)targetip)&netmask) == (*((unsigned int*)myip)&netmask))
+		nexthop = targetip;
+	else nexthop = gateway;
+
+	//Trovo l'indirizzo mac di destinazione avendo l'IP
+	if(!trovamac(mac_incognito,nexthop)){
+		printf("MAC incognito:");
+		//stampabytes(mac_incognito,6);
+	}
+	else printf("trovamac fallita\n");
+
 	//Costruisco un frame ethernet con pacchetto IP-ICMP all'interno
 	eth = (struct eth_frame *) buffer;
 	ip = (struct ip_datagram *) eth->payload;
+	icmp = (struct icmp_packet*) ip->payload;
 	tcp = (struct tcp_segment*) ip->payload;
 
-	//	crea_eth(eth,mymac,mac_incognito,0x0800);
-	//	crea_ip(ip,28,1,*(unsigned int*)targetip);
-	//	crea_icmp_echo(icmp);
 
-	//Visualizzo a schermo il pacchetto creato
-	//	printf("\nPacchetto ETH+IP+ICMP da inviare:");
-	//	stampabytes(buffer,14+20+28);//+14 header ethernet, +20 IP +28 ICMP(8+20 di payload)
-
-	//Preparo l'indirizzo dell'interfaccia
-	bzero(&sll,sizeof(struct sockaddr_ll));//Metto tutto a 0
-	sll.sll_ifindex = if_nametoindex("eth0");
-	printf("ifindex = %d\n",sll.sll_ifindex);
-	len = sizeof(sll);
-
-	//Invio il pacchetto ethernet che contiene IP
-	/*	t = sendto(s, buffer, 14+20+28, 0, (struct sockaddr *) &sll, len);
-		if (t == -1 ){
-		perror("sendto fallita");
-		return 1;
-		}
-	 */
-	const int START_SEQ = 0;
 	//Ricevo la risposta
 	for(m=0;m<1000;m++){
 		t = recvfrom(s, buffer, 1500, 0, (struct sockaddr *) &sll, &len);
@@ -137,95 +137,65 @@ int main(){
 		}
 
 		//Se il frame Ethernet ricevuto contiene un pacchetto IP
-		if (eth->type == htons(0x0800)){
-			//tcp	protocol
-			if (ip->protocol == 6 && ntohs(tcp->d_port) == 19599) {
-				printf("intercettato un pacchetto giusto\n");
-				// ack == 1
-				if (tcp->flags & 0x10 && ntohl(tcp->ack) == START_SEQ+1){
-					printf("handshake completato con successo!\n");	
-				}
-				// syn == 1
-				if (tcp->flags & 0x2){
-					printf("ricevuto syn da "); print_ip(ip->src);
-				//	print_ip_datagram(ip);
+		if (eth->type == htons(0x0800) && 
+				ip->protocol == 6 && ntohs(tcp->d_port) == 19599){ // tcp
+			printf("tcp trovato!\n");
+			unsigned int source_ip = ip->src; 
+			//Se il protocollo all'interno del payload IP è ICMP=1
 
-					printf("tcp source port = %hu, dest = %hu\n",ntohs(tcp->s_port),ntohs(tcp->d_port));
+			//Se il tipo di ICMP è 0: Echo message (request to get a reply)
+			//Se l'host è nella mia stessa sotto rete tengo il suo IP per cercalre l'indirizzo ethernet
+			//altrimenti uso l'indirizzo del mio gateway.
+			// TODO AGGIUNGERE PARTE DEL CHECK STESSA RETE (ANCHE SE ALLA FINE IL GATEWAY PUO GESTIRE TUTTO
+			nexthop = gateway;
+
+			//Trovo l'indirizzo mac di destinazione avendo l'IP
+			if(!trovamac(mac_incognito,nexthop)){
+				printf("MAC incognito:");
+				//	stampabytes(mac_incognito,6);
+			}
+			else printf("trovamac fallita\n");
+
+			//Costruisco un frame ethernet con pacchetto IP-ICMP all'interno
+			eth = (struct eth_frame *) buffer;//14 bytes 
+			ip = (struct ip_datagram *) eth->payload; // 20 bytes
+			icmp = (struct icmp_packet*) ip->payload;
 
 
-					if ((*((unsigned int *)targetip)&netmask) == (*((unsigned int*)myip)&netmask))
-						nexthop = targetip;
-					else nexthop = gateway;
-					printf("next hop: "); print_ip(*(unsigned int*)nexthop);
+			int ip_header_len = (ip->ver_ihl & 0x0F) *8;
+			int icmp_dimension = 8 + //base
+				ip_header_len + //ip header_dim
+				8; //original data datagram	  ;
 
-					//Trovo l'indirizzo mac di destinazione avendo l'IP
-					if(!trovamac(mac_incognito,nexthop)){
-						printf("MAC incognito:");
-						stampabytes(mac_incognito,6);
-					}
-					else printf("trovamac fallita\n");
+			memcpy(old_ip_buffer,ip,icmp_dimension-8);
+			crea_eth(eth,mymac,mac_incognito,0x0800);
+			crea_ip(ip,icmp_dimension,1,source_ip);
+			crea_icmp_unreachable(icmp,ip, icmp_dimension);
 
-					//ethernet
-					memcpy(eth->dst,mac_incognito,6);
-					memcpy(eth->src,mymac,6);
-					eth->type = htons(0x0800);
-					printf("eth package:");
-					stampabytes((unsigned char *)eth,14);
-					print_eth_frame(eth);
+			//Visualizzo a schermo il pacchetto creato
+			printf("\nPacchetto ETH+IP+ICMP da inviare:");
+			//stampabytes(buffer,14+20+icmp_dimension);//+14 header ethernet, +20 IP +28 ICMP(8+20 di payload)
 
-					//ip
-					unsigned int old_seq = tcp->seq;
-					crea_ip(ip,20,6,ip->src);
-					printf("ip package: \n");
-					stampabytes((unsigned char *)ip,20);
-					print_ip_datagram(ip);
+			//Preparo l'indirizzo
+			bzero(&sll,sizeof(struct sockaddr_ll));//Metto tutto a 0
+			sll.sll_ifindex = if_nametoindex("eth0");
+			printf("ifindex = %d\n",sll.sll_ifindex);
+			len = sizeof(sll);
 
-					//tcp
-					//swap source dest ports
-					unsigned short tmp = tcp->s_port;
-					tcp->s_port = tcp->d_port;
-					tcp->d_port = tmp;
-					printf("tcp source port = %hu, dest = %hu\n",ntohs(tcp->s_port),ntohs(tcp->d_port));
-					tcp->seq = htonl(START_SEQ); // random number
-					printf("seq number received: %d\n",ntohl(tcp->seq));
-					tcp->ack = htonl(ntohl(old_seq) +1);
-					printf("ack number sent: %d\n",ntohl(tcp->ack));
+			//Invio il pacchetto ethernet che contiene IP
+			t = sendto(s, buffer, 14+20+icmp_dimension, 0, (struct sockaddr *) &sll, len);
+			if (t == -1 ){
+				perror("sendto fallita");
+				return 1;
+			}
 
-					tcp->flags = 0x12; // ack e syn a 1
-					tcp->d_offs_res = 0x50;// 20 bytes di header (5*4)
-					tcp->checksum = 0;
-					tcp->win = htons(0);
-
-					struct tcp_pseudo pseudo;
-					memcpy(pseudo.tcp_segment,tcp,20);
-					pseudo.zeroes = 0;
-					pseudo.ip_src = *((unsigned int * ) myip);
-					pseudo.ip_dst = ip->dst;
-					pseudo.proto = 6;
-					pseudo.entire_len = htons(20);
-					tcp->checksum = htons(checksum((unsigned char*)&pseudo,20+12));
-				//	printf("\nfinal package:");
-				///	stampabytes((unsigned char *) buffer, 14+20+20);	
-
-					bzero(&sll,sizeof(struct sockaddr_ll));//Metto tutto a 0
-					sll.sll_ifindex = if_nametoindex("eth0");
-				//	printf("ifindex = %d\n",sll.sll_ifindex);
-					len = sizeof(sll);
-
-					t = sendto(s, buffer, 14+20+20, 0, (struct sockaddr *) &sll, len);
-					if (t == -1 ){
-						perror("sendto fallita");
-						return 1;
-					}
-					else printf("ack inviato\n");
-
-				}
-			}	
 		}
 
 	}//Fine for
 
 }//Fine main
+
+
 
 
 
@@ -247,7 +217,7 @@ int trovamac(unsigned char *mac_incognito, unsigned char*dstip){
 
 	//Visualizzo a schermo il pacchetto creato
 	printf("Pacchetto ETH+ARP creato:");
-	stampabytes(buffer,14+sizeof(struct arp_packet));//+14 è il frame Ethernet
+	//stampabytes(buffer,14+sizeof(struct arp_packet));//+14 è il frame Ethernet
 
 	//APRIRE COMUNICAZIONE
 	/*socket restituisce un INT che è un file descriptor
@@ -355,24 +325,33 @@ unsigned short checksum( unsigned char * buffer, int len){
 }
 
 
-void print_ip(unsigned int ip){
-	struct in_addr ip_addr;
-	ip_addr.s_addr = ip;
-	printf("%s\n",inet_ntoa(ip_addr));
+//Crea pachetto ICMP ECHO
+void crea_icmp_reply(struct icmp_packet * icmp,int size){
+	int i;
+	icmp->type=0;	//Echo (request)
+	icmp->code=0;
+	icmp->checksum=htons(0);
+	icmp->id=htons(0x1234);
+	icmp->seq = htons(1);
+	for(i=0;i<size-8;i++) icmp->payload[i]=i;
+	icmp->checksum = htons(checksum((unsigned char*)icmp,size));
+}
+
+//Crea pachetto ICMP ECHO
+int crea_icmp_unreachable(struct icmp_packet * icmp, struct ip_datagram * ip,int tot_dimension){
+	int i;
+	icmp->type=3;	//Echo (request)
+	icmp->code=3;
+	icmp->checksum=htons(0);
+	icmp->id=htons(0x1234); // not used
+	icmp->seq = htons(1); //not used
+	memcpy(icmp->payload, old_ip_buffer, tot_dimension-8); //ip header + 64 bits
+	//for(i=0;i<20;i++) icmp->payload[i]=i;//numeri da 0a 19
+	icmp->checksum = htons(checksum((unsigned char*)icmp,tot_dimension));
+	//final size = 28+8
+	return tot_dimension;
 }
 
 
-void print_eth_frame(struct eth_frame * f){
-	printf("\nETH FRAME:\n");
-	printf("from: %s  to: %s type: %d\n\n",f->src,f->dst,f->type);
-}
 
-void print_ip_datagram(struct ip_datagram *ip){
-	printf("IP DATAGRAM\n");
-	printf("tot_len: %ho\n",ntohs(ip->totlen));
-	printf("ttl: %hu\n",ip->ttl);
-	printf("protocol: %hhu\n",ip->protocol);
-	printf("checksum: %ho\n",ip->checksum);
-	printf("from: "); print_ip(ip->src);
-	printf("to: "); print_ip(ip->dst);
-}
+
