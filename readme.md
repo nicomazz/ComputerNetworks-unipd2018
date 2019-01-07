@@ -7,7 +7,7 @@ You can find all this information distributed in various RFC.
 - //todo add
 
 ## Useful links
-- [](https://www.stefanoivancich.com/?p=1291 "Here") You can find a summary of the most important things to know to pass the exam. 
+- [Here](https://www.stefanoivancich.com/?p=1291) you can find a summary of the most important things to know to pass the exam. 
 Anyway, maybe is better to study more in depth every topic.
 
 
@@ -16,6 +16,8 @@ Anyway, maybe is better to study more in depth every topic.
 An Ethernet frame (data link layer) contains an IP datagram (network layer) that can contains one of the following { tcp_segment (transport layer), icmp_packet } (for the purpose of this exam)
 
 #### Data types and endianess
+<details>
+<summary>Data types and endianess</summary>
 (depends on the architecture, but you can assume that the following is true for this exam)
 - `unsigned char` : 1 byte
 - `unsigned short`: 2 bytes
@@ -25,8 +27,13 @@ To transfer on the network is used Big endian. Most of the intel's cpus are litt
 -  `htonl(x)` or `htons(x)` to convert x from **H**ost **to** **N**etwork endianess, **l** if you have to convert a 4 bytes variable, **s** a 2 bytes one.
 - `ntohl(x)` or `ntohs(x)` for the opposite.
 - if a variable is 1 byte long we don't have endianess problems (obviously)
+ </details>
+
  
-### Ethernet frame
+#### Ethernet frame
+<details><summary>Ethernet frame</summary>
+<p>
+
 ```c
 // Frame Ethernet
 struct eth_frame {
@@ -38,7 +45,14 @@ struct eth_frame {
 ```
 Thanks to the `type` we can understand where to forward it on the next level (2 examples are ip or arp)
 
-### IP datagram
+</p>
+</details>
+
+
+#### IP datagram
+<details><summary>IP datagram</summary>
+<p>
+
 Header length: check second half of `ver_ihl` attribute. Example: if it's '5', then the header length is 4 * 5 = 20 bytes.  
 //todo add image
 ```c
@@ -58,7 +72,15 @@ struct ip_datagram{
 };
 ```
 
-### TCP segment
+</p>
+</details>
+
+
+#### TCP segment
+
+<details><summary>TCP segment</summary>
+<p>
+
 Header (as defined here) length: `20`
 ```c
 struct tcp_segment {
@@ -84,7 +106,16 @@ struct tcp_pseudo{
 	unsigned char tcp_segment[20/*to set appropriatly */];  // entire tcp package pointer
 };
 ```
-### Checksum calculation
+
+</p>
+</details>
+
+
+#### Checksum calculation
+
+<details><summary>Checksum calculation</summary>
+<p>
+
 We can use this function both for the IP datagram and the TCP segment,
 but we must take care about the `len` parameter.
 - [ ] todo: take care about minimum size for tcp, and odd/even corner case
@@ -103,7 +134,8 @@ unsigned short checksum( unsigned char * buffer, int len){
 }
 ```
 The 2 cases are: 
-- IP: ```c 	ip->checksum=htons(checksum((unsigned char*) ip, 20)); ```
+- IP: `ip->checksum=htons(checksum((unsigned char*) ip, 20));`
+`
 - TCP: 
 ```c
 int TCP_TOTAL_LEN = 20;
@@ -118,7 +150,14 @@ tcp->checksum = htons(checksum((unsigned char*)&pseudo,TCP_TOTAL_LEN+12));
 ```
 
 
-### Convert int IP address in string
+</p>
+</details>
+
+#### Convert int IP address in string
+
+<details><summary>Convert int IP address in string</summary>
+<p>
+
 ```c
 #include <arpa/inet.h>
 
@@ -130,6 +169,8 @@ main() {
 }
 ```
 
+</p>
+</details>
 
 ## Editor for the exam
 I advice VIM. And please, indent your code.
@@ -137,7 +178,9 @@ I advice VIM. And please, indent your code.
 - Press `esc` 2 times if you don't understand what is happening
 - `/query` to search for "query", `n` and `N` to search prev/next result
 
-Put this in ~/.vimrc to save time:
+<details><summary>Put this in ~/.vimrc to save time:</summary>
+<p>
+
 ```
 " auto reformat when you pres F7
 map <F7> mzgg=G`z
@@ -165,29 +208,29 @@ set cursorline
 set mouse=a
 ```
 
+</p>
+</details>
 
 ## Past exams
 You can find the complete exam statement in the site at the beginning of this readme.
 The complete code is in the folders.
  
 
-### 19 Giugno 2018 (ping.c)
+#### 19 June 2018 (ping.c)
 Implement TCP three way handshake (ACK+SYN).
 
-Tips:
-
+##### Tips:
 You can check with wireshark if your TCP checksum is correct or not.
+
 - [ ] Is the field option to include?
 
 
-
-
-
-### 20 Giugno 2018 (ping.c)
+#### 20 June 2018 (ping.c)
 Implement echo reply only for icmp requests of a certain size
 
-Tips:
+##### Tips:
 You can calculate the size of an icmp message in this way:
+
 ```c
 unsigned short dimension = ntohs(ip->totlen);
 unsigned short header_dim = (ip->ver_ihl & 0x0F) * 4;
@@ -195,15 +238,12 @@ int icmp_dimension = dimension-header_dim;
 ```
 
 
-
-
-
-### 20 Giugno 2016
+#### 20 June 2016
 
 #### 1 (tcp16.c)
 Intercept the first received connection, and print sequence and acknowledge numbers of them. Then reconstruct the 2 streams in 2 different buffers, and print their content.
 
-Tips: 
+##### Tips: 
 To intercept the end of the connection, just check if a package contains the FIN bit at 1 (after having filtered all the packages, maintaining only the ones belonging to the first connection).
 Use the tcp sequence field to copy the contnet at the right offset in the 2 buffers.
 DON'T DUPLICATE CODE.
@@ -211,7 +251,7 @@ DON'T DUPLICATE CODE.
 #### 2 (wp16.c)
 Modify the proxy to allow the request only from a pool of IP addresses, and allow only the transfer of files with text or html.
 
-Tips:
+##### Tips:
 Is better to first receive the response from the server in a buffer, then copy this content to another buffer to extract headers as always.
 This because the header extraction procedure modifies the buffer.
 If the condition of the Content-type is fullfilled then just forward the contnet of the initial buffer.
@@ -219,9 +259,12 @@ If the condition of the Content-type is fullfilled then just forward the contnet
 #### 3 (ws18.c)
 Send HTTP response with a chunked body.
 
-Tips: 
+##### Tips: 
 Add `Content-Type: text/plain\r\nTransfer-Encoding: chunked\r\n` to HTTP headers.
 Then, to build each chunk to send, you can use something like:
+<details>
+<summary>Code to build a chunk</summary>
+
 ```c
 int build_chunk(char * s, int len){
 	sprintf(chunk_buffer,"%x\r\n",len); // size in hex
@@ -237,25 +280,27 @@ int build_chunk(char * s, int len){
 }
 ```
 
-turno 2: proxy con lista ip sorgente allowed e filtro per content type
-turno 3: Http chunked
+</details>
 
 
 
-
-### 15 Luglio 2016 (ping.c)
+#### 15 July 2016 (ping.c)
 Implement an ICMP "Destination unreachable" that say that the port is unavailable
 
-Tips: you have to send the package in response to a tcp connection. `icmp->type = 3`, `icmp->code=3`.
+##### Tips: 
+you have to send the package in response to a tcp connection. `icmp->type = 3`, `icmp->code=3`.
 And remember to copy in the payload the content of the icmp original payload.
 
 
-### 24 Luglio 2015
+#### 24 July 2015 (wc18.c)
 Implement the `Last-Modified` header of HTTP/1.0
 
-Tips: 
+##### Tips: 
 Some usefull time conversion function. It could also have been done without the need of these conversions.
 The HTTP date format is `%a, %d %b %Y %H:%M:%S %Z`
+
+<details>
+<summary>Some usefull functions to deal with HTTP time</summary>	
 
 ```c
 char date_buf[1000];
@@ -300,7 +345,10 @@ char* getNowHttpDate(){
 
 ```
 
-### 26 Giugno 2014
+</details>
+
+
+#### 26 June 2014
 turno 1: content length (era già implementato)
 turno 2: trace 
 - [ ] fare chiarezza sul funzionamento di www.webtrace.com
