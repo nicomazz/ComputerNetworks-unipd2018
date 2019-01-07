@@ -3,7 +3,7 @@
 Tips and code to easily pass the computer networks practical exam ("Reti di calcolatori") in Padua.
 You can find all this information distributed in various RFC.
 
-## Usefull RFC:
+## Useful RFC:
 - [RFC791](https://tools.ietf.org/html/rfc791) IP
 - [RFC792](https://tools.ietf.org/html/rfc792) ICMP
 - [RFC793](https://tools.ietf.org/html/rfc793) TCP
