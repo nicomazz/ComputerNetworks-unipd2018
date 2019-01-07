@@ -39,11 +39,11 @@ To transfer on the network is used Big endian. Most of the intel's cpus are litt
 ```c
 // Frame Ethernet
 struct eth_frame {
-	unsigned char dst[6]; // mac address
-	unsigned char src[6]; // mac address
-	unsigned short type;	 // 0x0800 = ip, 0x0806 = arp
-	char payload[1500];	 //ARP or IP
-};
+   unsigned char dst[6]; // mac address
+   unsigned char src[6]; // mac address
+   unsigned short type;  // 0x0800 = ip, 0x0806 = arp
+   char payload[1500];   //ARP or IP
+ };
 ```
 Thanks to the `type` we can understand where to forward it on the next level (2 examples are ip or arp)
 
@@ -60,17 +60,17 @@ Header length: check second half of `ver_ihl` attribute. Example: if it's '5', t
 ```c
 // Datagramma IP
 struct ip_datagram{
-	unsigned char ver_ihl; 		// first 4 bits: version, second 4 bits: (lenght header)/8
-	unsigned char tos; 			//type of service 
-	unsigned short totlen; 		// len header + payload
-	unsigned short id; 			// usefull in case of fragmentation
-	unsigned short flags_offs; //offset/8 related to the original ip package
-	unsigned char ttl;
-	unsigned char protocol; 	// TCP = 6, ICMP = 1
-	unsigned short checksum; 	// only header checksum (not of payload). Must be at 0 before the calculation.
-	unsigned int src;				// ip address
-	unsigned int dst;				// ip address
-	unsigned char payload[1500];
+   unsigned char ver_ihl;    // first 4 bits: version, second 4 bits: (lenght header)/8
+   unsigned char tos;        //type of service 
+   unsigned short totlen;    // len header + payload
+   unsigned short id;        // usefull in case of fragmentation
+   unsigned short flags_offs;//offset/8 related to the original ip package
+   unsigned char ttl;
+   unsigned char protocol;   // TCP = 6, ICMP = 1
+   unsigned short checksum;  // only header checksum (not of payload). Must be at 0 before the calculation.
+   unsigned int src;         // ip address
+   unsigned int dst;         // ip address
+   unsigned char payload[1500];
 };
 ```
 
@@ -86,26 +86,26 @@ struct ip_datagram{
 Header (as defined here) length: `20`
 ```c
 struct tcp_segment {
-	unsigned short s_port;
-	unsigned short d_port;
-	unsigned int seq; 				// offset in bytes from the start of the tcp segment in the stream (from initial sequance n)
-	unsigned int ack; 				// usefull only if ACK flag is 1. Next seq that sender expect
-	unsigned char d_offs_res;     // first 4 bits: (header len/8)
-	unsigned char flags;				// check rfc
-	unsigned short win;				// usually initially a 0 (?)
-	unsigned short checksum;		// use tcp_pseudo to calculate it. Must be at 0 before the calculation.
-	unsigned short urgp;				
-	unsigned char payload[1000];
+   unsigned short s_port;
+   unsigned short d_port;
+   unsigned int seq;        // offset in bytes from the start of the tcp segment in the stream (from initial sequance n)
+   unsigned int ack;        // usefull only if ACK flag is 1. Next seq that sender expect
+   unsigned char d_offs_res;// first 4 bits: (header len/8)
+   unsigned char flags;            // check rfc
+   unsigned short win;      // usually initially a 0 (?)
+   unsigned short checksum; // use tcp_pseudo to calculate it. Must be at 0 before the calculation.
+   unsigned short urgp;            
+   unsigned char payload[1000];
 };
 ```
 To calculate the checksum of a TCP segment is useful to define an additional structure (check on the relative RFC). Size of it, without the tcp_segment part
 ```c
 struct tcp_pseudo{
-	unsigned int ip_src, ip_dst;
-	unsigned char zeroes;
-	unsigned char proto; 			// ip datagram protocol field (tcp = 6, ip = 1)
-	unsigned short entire_len;		// tcp length (header + data)
-	unsigned char tcp_segment[20/*to set appropriatly */];  // entire tcp package pointer
+   unsigned int ip_src, ip_dst;
+   unsigned char zeroes;
+   unsigned char proto;        // ip datagram protocol field (tcp = 6, ip = 1)
+   unsigned short entire_len;  // tcp length (header + data)
+   unsigned char tcp_segment[20/*to set appropriatly */];  // entire tcp package pointer
 };
 ```
 
@@ -124,15 +124,15 @@ but we must take care about the `len` parameter.
 
 ```c
 unsigned short checksum( unsigned char * buffer, int len){
-	int i;
-	unsigned short *p;
-	unsigned int tot=0;
-	p = (unsigned short *) buffer;
-	for(i=0;i<len/2;i++){
-		tot = tot + htons(p[i]);
-		if (tot&0x10000) tot = (tot&0xFFFF)+1;
-	}
-	return (unsigned short)0xFFFF-tot;
+   int i;
+   unsigned short *p;
+   unsigned int tot=0;
+   p = (unsigned short *) buffer;
+   for(i=0;i<len/2;i++){
+      tot = tot + htons(p[i]);
+      if (tot&0x10000) tot = (tot&0xFFFF)+1;
+   }
+   return (unsigned short)0xFFFF-tot;
 }
 ```
 The 2 cases are: 
@@ -164,10 +164,10 @@ tcp->checksum = htons(checksum((unsigned char*)&pseudo,TCP_TOTAL_LEN+12));
 #include <arpa/inet.h>
 
 main() {
-    uint32_t ip = 2110443574;
-    struct in_addr ip_addr;
-    ip_addr.s_addr = ip;
-    printf("The IP address is %s\n", inet_ntoa(ip_addr));
+   uint32_t ip = 2110443574;
+   struct in_addr ip_addr;
+   ip_addr.s_addr = ip;
+   printf("The IP address is %s\n", inet_ntoa(ip_addr));
 }
 ```
 
@@ -269,16 +269,16 @@ Then, to build each chunk to send, you can use something like:
 
 ```c
 int build_chunk(char * s, int len){
-	sprintf(chunk_buffer,"%x\r\n",len); // size in hex
-	// debug	printf("%d in hex: %s",len,chunk_buffer);
-	int from = strlen(chunk_buffer);
-	int i = 0;
-	for (;i < len; i++)
-		chunk_buffer[from+i] = s[i];
-	chunk_buffer[from+(i++)] = '\r';
-	chunk_buffer[from+(i++)] = '\n';
-	chunk_buffer[i+from] = 0;
-	return i+from;
+   sprintf(chunk_buffer,"%x\r\n",len); // size in hex
+   // debug   printf("%d in hex: %s",len,chunk_buffer);
+   int from = strlen(chunk_buffer);
+   int i = 0;
+   for (;i < len; i++)
+      chunk_buffer[from+i] = s[i];
+   chunk_buffer[from+(i++)] = '\r';
+   chunk_buffer[from+(i++)] = '\n';
+   chunk_buffer[i+from] = 0;
+   return i+from;
 }
 ```
 
@@ -302,49 +302,41 @@ Some usefull time conversion function. It could also have been done without the 
 The HTTP date format is `%a, %d %b %Y %H:%M:%S %Z`
 
 <details>
-<summary>Some usefull functions to deal with HTTP time</summary>	
+<summary>Some usefull functions to deal with HTTP time</summary>   
 
 ```c
 char date_buf[1000];
 
 char* getNowHttpDate(){
-	time_t now = time(0);
-	struct tm tm = *gmtime(&now);
-	strftime(date_buf, sizeof date_buf, "%a, %d %b %Y %H:%M:%S %Z", &tm);
-	printf("Time is: [%s]\n", date_buf);
-	return date_buf;
+   time_t now = time(0);
+   struct tm tm = *gmtime(&now);
+   strftime(date_buf, sizeof date_buf, "%a, %d %b %Y %H:%M:%S %Z", &tm);
+   printf("Time is: [%s]\n", date_buf);
+   return date_buf;
 }
 // parse time and convert it to millisecond from epoch
 time_t httpTimeToEpoch(char * time){
-	struct tm tm;
-	char buf[255];
-	memset(&tm, 0, sizeof(struct tm));
-	strptime(time,"%a, %d %b %Y %H:%M:%S %Z", &tm);
-	return mktime(&tm);
+   struct tm tm;
+   char buf[255];
+   memset(&tm, 0, sizeof(struct tm));
+   strptime(time,"%a, %d %b %Y %H:%M:%S %Z", &tm);
+   return mktime(&tm);
 }
 // returns 1 if d1 < d2
 unsigned char compareHttpDates(char * d1, char * d2){
-	return httpTimeToEpoch(d1) < httpTimeToEpoch(d2);
+   return httpTimeToEpoch(d1) < httpTimeToEpoch(d2);
 }
 unsigned char expired(char * uri, char * last_modified){
-	char * complete_name = uriToCachedFile(uri);
-	FILE * fp = fopen(complete_name,"r");
-	if (fp == NULL) return 1;
-	char * line = 0; size_t len = 0;
-	getline(&line,&len,fp);
-	if (compareHttpDates(last_modified,line)) return 0;
-	return 1;
-	//todo read First line and compare
+   char * complete_name = uriToCachedFile(uri);
+   FILE * fp = fopen(complete_name,"r");
+   if (fp == NULL) return 1;
+   //read the first line
+   char * line = 0; size_t len = 0;
+   getline(&line,&len,fp);
+   if (compareHttpDates(last_modified,line)) return 0;
+   return 1;
+   //todo read First line and compare
 }
-
-char* getNowHttpDate(){
-	time_t now = time(0);
-	struct tm tm = *gmtime(&now);
-	strftime(date_buf, sizeof date_buf, "%a, %d %b %Y %H:%M:%S %Z", &tm);
-	printf("Time is: [%s]\n", date_buf);
-	return date_buf;
-}
-
 ```
 
 </details>
