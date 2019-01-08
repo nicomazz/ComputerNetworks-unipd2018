@@ -239,7 +239,7 @@ You can check with wireshark if your TCP checksum is correct or not.
 
 - [ ] Is the field option to include?
 
-
+---
 #### 20 June 2018 (ping.c)
 Implement echo reply only for icmp requests of a certain size
 
@@ -252,6 +252,7 @@ unsigned short header_dim = (ip->ver_ihl & 0x0F) * 4;
 int icmp_dimension = dimension-header_dim;
 ```
 
+---
 
 #### 20 June 2016
 
@@ -263,6 +264,8 @@ To intercept the end of the connection, just check if a package contains the FIN
 Use the tcp sequence field to copy the contnet at the right offset in the 2 buffers.
 DON'T DUPLICATE CODE.
 
+---
+
 #### 2 (wp16.c)
 Modify the proxy to allow the request only from a pool of IP addresses, and allow only the transfer of files with text or html.
 
@@ -270,6 +273,8 @@ Modify the proxy to allow the request only from a pool of IP addresses, and allo
 Is better to first receive the response from the server in a buffer, then copy this content to another buffer to extract headers as always.
 This because the header extraction procedure modifies the buffer.
 If the condition of the Content-type is fullfilled then just forward the contnet of the initial buffer.
+
+---
 
 #### 3 (ws18.c)
 Send HTTP response with a chunked body.
@@ -297,6 +302,7 @@ int build_chunk(char * s, int len){
 
 </details>
 
+---
 
 
 #### 15 July 2016 (ping.c)
@@ -306,6 +312,7 @@ Implement an ICMP "Destination unreachable" that say that the port is unavailabl
 you have to send the package in response to a tcp connection. `icmp->type = 3`, `icmp->code=3`.
 And remember to copy in the payload the content of the icmp original payload.
 
+---
 
 #### 24 July 2015 (wc18.c)
 Implement the `Last-Modified` header of HTTP/1.0
@@ -354,6 +361,7 @@ unsigned char expired(char * uri, char * last_modified){
 
 </details>
 
+---
 
 #### 26 June 2014
 turno 1: content length (era già implementato)
