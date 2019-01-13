@@ -38,7 +38,7 @@ int main() {
 
    //APRIRE COMUNICAZIONE
    /*socket restituisce un INT che è un file descriptor
-	  ovvero l'indice della tabella con tutto ciò che serve per gestire la comunicazione*/
+     ovvero l'indice della tabella con tutto ciò che serve per gestire la comunicazione*/
    s = socket(AF_INET, SOCK_STREAM, 0);  //AF_INET=IPv4, SOCK_STREAM:apre uno stream, protocol:0 (default)
    if (s == -1) {
       perror("Socket Fallita");
@@ -60,11 +60,11 @@ int main() {
 
    //RICHIESTA
    /*Full-Request = Request-Line
-									 *( General-Header
-									  | Request-Header
-									  | Entity-Header )
-									  CRLF
-									  [ Entity-Body ]   */
+    *( General-Header
+    | Request-Header
+    | Entity-Header )
+    CRLF
+    [ Entity-Body ]   */
    // Request-Line = Method SP Request-URI SP HTTP-Version CRLF   (con CRLF=\r\n)
    // Header = nome: valore
 
@@ -77,11 +77,11 @@ int main() {
 
    //RICEVO LA FULL-RESPONSE
    /*Full-Response = Status-Line
-										*( General-Header
-										| Response-Header
-										| Entity-Header )
-									  CRLF
-									  [ Entity-Body ]   */
+    *( General-Header
+    | Response-Header
+    | Entity-Header )
+    CRLF
+    [ Entity-Body ]   */
    // Status-Line = HTTP-version SP Status-Code SP Reason-Phrase CRLF
    // Header = nome: valore
 
@@ -160,12 +160,12 @@ int main() {
    //free(entity);
 
    /*
-	p = response; 
-	while (t=read(s,p,100000)){
-	        p = p + t;
-	*p=0;
-	}       
-	*/
+      p = response; 
+      while (t=read(s,p,100000)){
+      p = p + t;
+    *p=0;
+    }       
+    */
 }  //Fine main
 
 long hexToLong(char *str) {
