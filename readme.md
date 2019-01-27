@@ -1,7 +1,7 @@
 # Computer networks - unipd 2018
 
 Tips and code to easily pass the computer networks practical exam ("Reti di calcolatori") in Padua.
-You can find all this information distributed in various RFC.
+You can find everything that is in this readme through `man`, and the various RFCs. I've done it just for a fast reference.
 
 ## Useful RFC:
 - [RFC791](https://tools.ietf.org/html/rfc791) IP
@@ -20,8 +20,16 @@ Anyway, maybe is better to study more in depth every topic.
 
 ## Something to understand before trying the past exams
 
-An Ethernet frame (data link layer) contains an IP datagram (network layer) that can contains one of the following { tcp_segment (transport layer), icmp_packet } (for the purpose of this exam)
+An Ethernet frame (data link layer) contains an IP datagram (network layer) that can contains one of the following { tcp_segment (transport layer), icmp_packet } (for the purpose of this exam). An easy way to realize that is:
 
+```c
+eth = (struct eth_frame *)buffer;
+ip = (struct ip_datagram *)eth->payload;
+
+tcp = (struct tcp_segment *)ip->payload;
+// or
+icmp = (struct icmp_packet *)ip->payload; 
+```
 #### Data types and endianess
 <details>
 <summary>Data types and endianess</summary>
@@ -34,7 +42,7 @@ An Ethernet frame (data link layer) contains an IP datagram (network layer) that
 
 To transfer on the network is used Big endian. Most of the intel's cpus are little endian. To convert use this 2 functions that automatically understand if a conversion is needed:
 -  `htonl(x)` or `htons(x)` to convert x from **H**ost **to** **N**etwork endianess, **l** if you have to convert a 4 bytes variable, **s** a 2 bytes one.
-- `ntohl(x)` or `ntohs(x)` for the opposite.
+- `ntohl(x)` or `ntohs(x)` for the opposite. (You may notice that the implementation of htonx and ntohx is the same)
 - if a variable is 1 byte long we don't have endianess problems (obviously)
  </details>
 
@@ -176,12 +184,12 @@ tcp->checksum = htons(checksum((unsigned char*)&pseudo,TCP_TOTAL_LEN+12));
 ```c
 #include <arpa/inet.h>
 
-main() {
-   uint32_t ip = 2110443574;
+void print_ip(unsigned int ip){
    struct in_addr ip_addr;
    ip_addr.s_addr = ip;
-   printf("The IP address is %s\n", inet_ntoa(ip_addr));
+   printf("%s\n",inet_ntoa(ip_addr));
 }
+
 ```
 
 </p>
@@ -208,7 +216,8 @@ map <F9> :!./np <CR>
 " make your code look nicer
 set tabstop=3
 set shiftwidth=3
-set softtabstop=0 noexpandtab
+set softtabstop=0 expandtab
+set incsearch
 set cindent
 
 " Ctrl+shift+up/down to swap the line up or doen
@@ -230,6 +239,8 @@ set mouse=a
 You can find the complete exam statement in the site at the beginning of this readme.
 The complete code is in the folders.
  
+<details>
+<summary>Past exams</summary>   
 
 #### 19 June 2018 (ping.c)
 Implement TCP three way handshake (ACK+SYN).
@@ -318,9 +329,26 @@ And remember to copy in the payload the content of the icmp original payload.
 Implement the `Last-Modified` header of HTTP/1.0
 
 ##### Tips: 
-Some usefull time conversion function. It could also have been done without the need of these conversions.
+Some usefull time conversion functions in the misc section. It could also have been done without the need of these conversions.
 The HTTP date format is `%a, %d %b %Y %H:%M:%S %Z`
 
+---
+
+#### 26 June 2014
+1: content length (was already implemented)
+2: trace (??)
+
+- [ ] How does www.webtrace.com work?
+
+---
+
+</details>
+
+
+# Misc
+
+#### HTTP-date
+The HTTP date format is `%a, %d %b %Y %H:%M:%S %Z`
 <details>
 <summary>Some usefull functions to deal with HTTP time</summary>   
 
@@ -361,12 +389,202 @@ unsigned char expired(char * uri, char * last_modified){
 
 </details>
 
----
 
-#### 26 June 2014
-turno 1: content length (era già implementato)
-turno 2: trace 
-- [ ] fare chiarezza sul funzionamento di www.webtrace.com
+#### rewind 
+`rewind(FILE*)` set the cursor at the beginning
 
+#### Read a file and forward it
+<details>
+<summary>Read a file and forward it</summary>   
+
+```c
+FILE *fin;
+if ((fin = fopen(uri + 1, "rt")) == NULL) { // the t is useless
+   printf("File %s non aperto\n", uri + 1);
+   sprintf(response, "HTTP/1.1 404 File not found\r\n\r\n<html>File non trovato</html>");
+   t = write(s2, response, strlen(response));
+   if (t == -1) {
+      perror("write fallita");
+      return -1;
+      }
+} else {
+   content_length = 0;
+   while ((c = fgetc(fin)) != EOF) content_length++; // get file lenght
+   sprintf(response, "HTTP/1.1 200 OK\r\nConnection: keep-alive\r\nContent-Length: %d\r\n\r\n", content_length);
+   printf("Response: %s\n", response);
+   //send header
+   t = write(s2, response, strlen(response));
+   //rewind the file
+   rewind(fin);
+   //re-read the file, char per char
+   while ((c = fgetc(fin)) != EOF) {
+      //printf("%c", c);
+      //sending the file, char per char
+      if (write(s2, (unsigned char *)&c, 1) != 1) {
+         perror("Write fallita");
+      }
+   }
+   fclose(fin);
+}
+```
+
+</details>
+
+
+#### Read from a socket and forward to another socket (like a proxy)
+```c
+char car;
+while (read(s3, &car, 1)) {
+   write(s2, &car, 1);
+   //   printf("%c",car);
+}
+```
+
+#### Check if the target ip is in our network
+```c
+unsigned char targetip[4] = {147, 162, 2, 100};
+unsigned int netmask = 0x00FFFFFF;
+if ((*((unsigned int *)targetip) & netmask) == (*((unsigned int *)myip) & netmask))
+      nexthop = targetip;
+   else
+      nexthop = gateway;
+```
+
+#### gethostbyname
+
+from hostname (like www.google.it) to ip address
+```c
+/**
+struct hostent {
+   char  *h_name;            // official name of host 
+   char **h_aliases;         // alias list 
+   int    h_addrtype;        // host address type 
+   int    h_length;          // length of address 
+   char **h_addr_list;       // list of addresses 
+}
+#define h_addr h_addr_list[0] // for backward compatibility 
+*/
+struct hostent *he;
+he = gethostbyname(hostname);
+printf("Indirizzo di %s : %d.%d.%d.%d\n", hostname,
+       (unsigned char)(he->h_addr[0]), (unsigned char)(he->h_addr[1]),
+       (unsigned char)(he->h_addr[2]), (unsigned char)(he->h_addr[3]));
+```
+
+#### socket creation, binding for listening and writing (like http requests)
+For listening:
+
+<details>
+<summary>Socket creation and options setting</summary>   
+
+```c
+int s = socket(AF_INET, // domain: ipv4
+/*
+SOCK_STREAM     Provides sequenced, reliable, two-way, connection-based  byte  streams.   An  out-of-band  data
+                       transmission mechanism may be supported.
+SOCK_DGRAM      Supports datagrams (connectionless, unreliable messages of a fixed maximum length).
+SOCK_RAW        Provides raw network protocol access.
+*/
+   SOCK_STREAM,         // type: stream
+   0);                  // protocol (0=ip), check /etc/protocols
+if (s == -1) {
+   perror("Socket Fallita");
+   return 1;
+}
+// https://stackoverflow.com/questions/3229860/what-is-the-meaning-of-so-reuseaddr-setsockopt-option-linux
+// SO_REUSEADDR allows your server to bind to an address which is in a TIME_WAIT state.
+int yes = 1;
+if (setsockopt(s, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int)) == -1) {
+   perror("setsockopt");
+   return 1;
+}
+```
+
+</details>
+
+<details>
+<summary>Binding to a local port</summary>   
+
+```c
+struct sockaddr_in indirizzo;
+indirizzo.sin_family = AF_INET;
+indirizzo.sin_port = htons(8987);
+indirizzo.sin_addr.s_addr = 0;
+
+t = bind(s, (struct sockaddr *)&indirizzo, sizeof(struct sockaddr_in));
+if (t == -1) {
+   perror("Bind fallita");
+   return 1;
+}
+t = listen(s, 
+// backlog defines the maximum length for the queue of pending connections.
+   10);
+if (t == -1) {
+   perror("Listen Fallita");
+   return 1;
+}
+```
+
+</details>
+
+<details>
+<summary>Accepting a connection, and reading the actual content of the buffer</summary>   
+
+```c
+int lunghezza = sizeof(struct sockaddr_in);
+// the remote address will be placed in indirizzo_remoto
+s2 = accept(s, (struct sockaddr *)&indirizzo_remoto, &lunghezza);
+if (s2 == -1) {
+   perror("Accept Fallita");
+   return 1;
+}
+// now we can read in this way:
+char buffer[10000];
+int i;
+for (i = 0; (t = read(s2, buffer+i, 1)) > 0; i++); // ps. it's not a good way
+// if the previous read returned -1
+if (t == -1) {
+   perror("Read Fallita");
+   return 1;
+}
+```
+
+</details>
+
+At the end, remember to close all the sockets with `close(s)` (where s in the socket you want to close)
+
+
+#### RAW socket creation, binding for listening and writing (to deal with tcp/icmp/arp requests directly)
+
+```c
+int s = socket(
+//AF_PACKET       Low level packet interface       packet(7)
+   AF_PACKET, 
+//SOCK_RAW        Provides raw network protocol access.
+   SOCK_RAW, 
+// When protocol is set to htons(ETH_P_ALL), then all protocols are received.
+   htons(ETH_P_ALL));
+
+unsigned char buffer[1500];
+bzero(&sll, sizeof(struct sockaddr_ll));
+struct sockaddr_ll sll;
+sll.sll_ifindex = if_nametoindex("eth0");
+len = sizeof(sll);
+int t = sendto(s, //socket
+   buffer, //things to send
+   14 + 20 + 28, // len datagram
+   0, //flags
+   (struct sockaddr *)&sll, // destination addr
+   len // dest addr len
+);
+
+// to receive
+t = recvfrom(s, buffer, 1500, 0, (struct sockaddr *)&sll, &len);
+if (t == -1) {
+   perror("recvfrom fallita");
+   return 1;
+}
+
+```
 
 
