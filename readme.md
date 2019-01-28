@@ -9,7 +9,7 @@ You can find everything that is in this readme through `man`, and the various RF
 <!-- MarkdownTOC autolink="true" -->
 
 - [Useful RFCs](#useful-rfcs)
-- [Usefull links](#usefull-links)
+- [Useful links](#useful-links)
 - [Something to understand before trying the past exams](#something-to-understand-before-trying-the-past-exams)
    - [Data types and endianess](#data-types-and-endianess)
    - [Ethernet frame](#ethernet-frame)
@@ -53,7 +53,7 @@ You can find everything that is in this readme through `man`, and the various RF
 - [RFC2616](https://tools.ietf.org/html/rfc2616) HTTP1.1
 
 
-## Usefull links
+## Useful links
 - [Here](https://www.stefanoivancich.com/?p=1291) you can find a summary of the most important things to know to pass the exam. 
 Anyway, maybe is better to study more in depth every topic.
 - [C socket programming online book](http://alas.matf.bg.ac.rs/manuals/lspe/mode=1.html). There is more than needed, but still interesting.
@@ -123,7 +123,7 @@ struct ip_datagram{
    unsigned char ver_ihl;    // first 4 bits: version, second 4 bits: (lenght header)/8
    unsigned char tos;        //type of service 
    unsigned short totlen;    // len header + payload
-   unsigned short id;        // usefull in case of fragmentation
+   unsigned short id;        // useful in case of fragmentation
    unsigned short flags_offs;//offset/8 related to the original ip package
    unsigned char ttl;
    unsigned char protocol;   // TCP = 6, ICMP = 1
@@ -151,7 +151,7 @@ struct tcp_segment {
    unsigned short s_port;
    unsigned short d_port;
    unsigned int seq;        // offset in bytes from the start of the tcp segment in the stream (from initial sequance n)
-   unsigned int ack;        // usefull only if ACK flag is 1. Next seq that sender expect
+   unsigned int ack;        // useful only if ACK flag is 1. Next seq that sender expect
    unsigned char d_offs_res;// first 4 bits: (header len/8)
    unsigned char flags;            // check rfc
    unsigned short win;      // usually initially a 0 (?)
@@ -376,7 +376,7 @@ And remember to copy in the payload the content of the icmp original payload.
 Implement the `Last-Modified` header of HTTP/1.0
 
 **Tips**: 
-Some usefull time conversion functions in the misc section. It could also have been done without the need of these conversions.
+Some useful time conversion functions in the misc section. It could also have been done without the need of these conversions.
 The HTTP date format is `%a, %d %b %Y %H:%M:%S %Z`
 
 ---
@@ -397,7 +397,7 @@ The HTTP date format is `%a, %d %b %Y %H:%M:%S %Z`
 #### HTTP-date
 The HTTP date format is `%a, %d %b %Y %H:%M:%S %Z`
 <details>
-<summary>Some usefull functions to deal with HTTP time</summary>   
+<summary>Some useful functions to deal with HTTP time</summary>   
 
 ```c
 char date_buf[1000];
@@ -635,7 +635,7 @@ if (t == -1) {
 ```
 
 #### How to printf the various things
-Not really usefull, but..
+Not really useful, but..
 ```c
 // es. tcp.c
 printf("%.4d.  // delta_sec (unsigned int)
