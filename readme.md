@@ -230,10 +230,29 @@ nnoremap <C-h> :set hlsearch!<CR>
 set number
 set cursorline
 set mouse=a
-```
 
+set foldmethod=indent               
+set foldlevelstart=99
+
+let mapleader="\<space>"
+nnoremap <leader>b :make <CR> :cw <CR>
+```
 </p>
 </details>
+
+#### Quickfix and makefile (aka how not waste time)
+
+First of all create a `makefile` in the directory with the files to compile, like this:
+```makefile
+np : ws18.c
+        gcc -o np ws18.c
+```
+Pay attention to put a tab before "gcc", and not spaces (if you have expandtab enabled in vim, use `ctrl=v tab`).
+Here `np` is what you want generate (the executable), and `ws18.c` the file to compile. In the line below there is the command to call each time you write `:make` in vim.
+Then, with the `.vimrc` provided above, press `space` (release it) and `b` (**b**uild).
+The command will be excuted, and you will see in the bottom of your code the list of errors. 
+You can fastly jump in the correct line by pressing enter in each entry.
+To move between the top and bottom split press `CTRL+W` `W`. To close the bottom view (quickfix) `:q`, or `:cw`.
 
 ## Past exams
 You can find the complete exam statement in the site at the beginning of this readme.
@@ -248,7 +267,7 @@ Implement TCP three way handshake (ACK+SYN).
 ##### Tips:
 You can check with wireshark if your TCP checksum is correct or not.
 
-- [ ] Is the field option to include?
+- [ ] Is the option field to include?
 
 ---
 #### 20 June 2018 (ping.c)
