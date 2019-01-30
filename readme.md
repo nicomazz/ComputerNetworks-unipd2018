@@ -3,7 +3,48 @@
 Tips and code to easily pass the computer networks practical exam ("Reti di calcolatori") in Padua.
 You can find everything that is in this readme through `man`, and the various RFCs. I've done it just for a fast reference.
 
-## Useful RFC:
+<details><summary>TOC</summary>
+<p>
+
+<!-- MarkdownTOC autolink="true" -->
+
+- [Useful RFCs](#useful-rfcs)
+- [Useful links](#useful-links)
+- [Something to understand before trying the past exams](#something-to-understand-before-trying-the-past-exams)
+   - [Data types and endianess](#data-types-and-endianess)
+   - [Ethernet frame](#ethernet-frame)
+   - [IP datagram](#ip-datagram)
+   - [TCP segment](#tcp-segment)
+   - [Checksum calculation](#checksum-calculation)
+   - [Convert int IP address in string](#convert-int-ip-address-in-string)
+- [Editor for the exam](#editor-for-the-exam)
+- [Past exams](#past-exams)
+   - [19 June 2018 \(ping.c\)](#19-june-2018-pingc)
+   - [20 June 2018 \(ping.c\)](#20-june-2018-pingc)
+   - [20 June 2016](#20-june-2016)
+   - [1 \(tcp16.c\)](#1-tcp16c)
+   - [2 \(wp16.c\)](#2-wp16c)
+   - [3 \(ws18.c\)](#3-ws18c)
+   - [15 July 2016 \(ping.c\)](#15-july-2016-pingc)
+   - [24 July 2015 \(wc18.c\)](#24-july-2015-wc18c)
+   - [26 June 2014](#26-june-2014)
+- [Misc](#misc)
+   - [HTTP-date](#http-date)
+   - [rewind](#rewind)
+   - [Read a file and forward it](#read-a-file-and-forward-it)
+   - [Read from a socket and forward to another socket \(like a proxy\)](#read-from-a-socket-and-forward-to-another-socket-like-a-proxy)
+   - [Check if the target ip is in our network](#check-if-the-target-ip-is-in-our-network)
+   - [gethostbyname](#gethostbyname)
+   - [socket creation, binding for listening and writing \(like http requests\)](#socket-creation-binding-for-listening-and-writing-like-http-requests)
+   - [RAW socket creation, binding for listening and writing \(to deal with tcp/icmp/arp requests directly\)](#raw-socket-creation-binding-for-listening-and-writing-to-deal-with-tcpicmparp-requests-directly)
+   - [How to printf the various things](#how-to-printf-the-various-things)
+
+<!-- /MarkdownTOC -->
+</p>
+</details>
+
+
+## Useful RFCs
 - [RFC791](https://tools.ietf.org/html/rfc791) IP
 - [RFC792](https://tools.ietf.org/html/rfc792) ICMP
 - [RFC793](https://tools.ietf.org/html/rfc793) TCP
@@ -15,7 +56,7 @@ You can find everything that is in this readme through `man`, and the various RF
 ## Useful links
 - [Here](https://www.stefanoivancich.com/?p=1291) you can find a summary of the most important things to know to pass the exam. 
 Anyway, maybe is better to study more in depth every topic.
-- [C socket programming online book](http://alas.matf.bg.ac.rs/manuals/lspe/mode=1.html)
+- [C socket programming online book](http://alas.matf.bg.ac.rs/manuals/lspe/mode=1.html). There is more than needed, but still interesting.
 
 
 ## Something to understand before trying the past exams
@@ -74,7 +115,7 @@ Thanks to the `type` we can understand where to forward it on the next level (2 
 
 ![Ip datagram](http://www.danzig.jct.ac.il/tcp-ip-lab/ibm-tutorial/3376f11.gif)
 
-Header length: check second half of `ver_ihl` attribute. Example: if it's '5', then the header length is 4 * 5 = 20 bytes.  
+Header length: check second half of `ver_ihl` attribute. Example: if it's '5', then the header length is **4** * 5 = 20 bytes.  
 //todo add image
 ```c
 // Datagramma IP
@@ -82,7 +123,7 @@ struct ip_datagram{
    unsigned char ver_ihl;    // first 4 bits: version, second 4 bits: (lenght header)/8
    unsigned char tos;        //type of service 
    unsigned short totlen;    // len header + payload
-   unsigned short id;        // usefull in case of fragmentation
+   unsigned short id;        // useful in case of fragmentation
    unsigned short flags_offs;//offset/8 related to the original ip package
    unsigned char ttl;
    unsigned char protocol;   // TCP = 6, ICMP = 1
@@ -110,7 +151,7 @@ struct tcp_segment {
    unsigned short s_port;
    unsigned short d_port;
    unsigned int seq;        // offset in bytes from the start of the tcp segment in the stream (from initial sequance n)
-   unsigned int ack;        // usefull only if ACK flag is 1. Next seq that sender expect
+   unsigned int ack;        // useful only if ACK flag is 1. Next seq that sender expect
    unsigned char d_offs_res;// first 4 bits: (header len/8)
    unsigned char flags;            // check rfc
    unsigned short win;      // usually initially a 0 (?)
@@ -126,10 +167,15 @@ struct tcp_pseudo{
    unsigned char zeroes;
    unsigned char proto;        // ip datagram protocol field (tcp = 6, ip = 1)
    unsigned short entire_len;  // tcp length (header + data)
-   unsigned char tcp_segment[20/*to set appropriatly */];  // entire tcp package pointer
+   unsigned char tcp_segment[20/*to set appropriatly */];  // entire tcp packet pointer
 };
 ```
-
+To calculate the size of the entire tcp segment (or of the icmp), or more in general of the ip payload:
+```c
+unsigned short ip_total_len = ntohs(ip->totlen);
+unsigned short ip_header_dim = (ip->ver_ihl & 0x0F) * 4;
+int ip_payload_len = ip_total_len-ip_header_dim;
+```
 </p>
 </details>
 
@@ -141,6 +187,7 @@ struct tcp_pseudo{
 
 We can use this function both for the IP datagram and the TCP segment,
 but we must take care about the `len` parameter.
+
 - [ ] todo: take care about minimum size for tcp, and odd/even corner case
 
 ```c
@@ -162,10 +209,10 @@ The 2 cases are:
 - TCP: 
 ```c
 int TCP_TOTAL_LEN = 20;
-struct tcp_pseudo pseudo;
+struct tcp_pseudo pseudo; // size of this: 12
 memcpy(pseudo.tcp_segment,tcp,TCP_TOTAL_LEN); 
 pseudo.zeroes = 0;
-pseudo.ip_src = *((unsigned int * ) myip);
+pseudo.ip_src = ip->src;
 pseudo.ip_dst = ip->dst;
 pseudo.proto = 6;
 pseudo.entire_len = htons(TCP_TOTAL_LEN); // may vary
@@ -264,7 +311,7 @@ The complete code is in the folders.
 #### 19 June 2018 (ping.c)
 Implement TCP three way handshake (ACK+SYN).
 
-##### Tips:
+**Tips**:
 You can check with wireshark if your TCP checksum is correct or not.
 
 - [ ] Is the option field to include?
@@ -273,7 +320,7 @@ You can check with wireshark if your TCP checksum is correct or not.
 #### 20 June 2018 (ping.c)
 Implement echo reply only for icmp requests of a certain size
 
-##### Tips:
+**Tips**:
 You can calculate the size of an icmp message in this way:
 
 ```c
@@ -289,7 +336,7 @@ int icmp_dimension = dimension-header_dim;
 #### 1 (tcp16.c)
 Intercept the first received connection, and print sequence and acknowledge numbers of them. Then reconstruct the 2 streams in 2 different buffers, and print their content.
 
-##### Tips: 
+**Tips**: 
 To intercept the end of the connection, just check if a package contains the FIN bit at 1 (after having filtered all the packages, maintaining only the ones belonging to the first connection).
 Use the tcp sequence field to copy the contnet at the right offset in the 2 buffers.
 DON'T DUPLICATE CODE.
@@ -299,7 +346,7 @@ DON'T DUPLICATE CODE.
 #### 2 (wp16.c)
 Modify the proxy to allow the request only from a pool of IP addresses, and allow only the transfer of files with text or html.
 
-##### Tips:
+**Tips**:
 Is better to first receive the response from the server in a buffer, then copy this content to another buffer to extract headers as always.
 This because the header extraction procedure modifies the buffer.
 If the condition of the Content-type is fullfilled then just forward the contnet of the initial buffer.
@@ -309,7 +356,7 @@ If the condition of the Content-type is fullfilled then just forward the contnet
 #### 3 (ws18.c)
 Send HTTP response with a chunked body.
 
-##### Tips: 
+**Tips**: 
 Add `Content-Type: text/plain\r\nTransfer-Encoding: chunked\r\n` to HTTP headers.
 Then, to build each chunk to send, you can use something like:
 <details>
@@ -338,7 +385,7 @@ int build_chunk(char * s, int len){
 #### 15 July 2016 (ping.c)
 Implement an ICMP "Destination unreachable" that say that the port is unavailable
 
-##### Tips: 
+**Tips**: 
 you have to send the package in response to a tcp connection. `icmp->type = 3`, `icmp->code=3`.
 And remember to copy in the payload the content of the icmp original payload.
 
@@ -347,8 +394,8 @@ And remember to copy in the payload the content of the icmp original payload.
 #### 24 July 2015 (wc18.c)
 Implement the `Last-Modified` header of HTTP/1.0
 
-##### Tips: 
-Some usefull time conversion functions in the misc section. It could also have been done without the need of these conversions.
+**Tips**: 
+Some useful time conversion functions in the misc section. It could also have been done without the need of these conversions.
 The HTTP date format is `%a, %d %b %Y %H:%M:%S %Z`
 
 ---
@@ -369,7 +416,7 @@ The HTTP date format is `%a, %d %b %Y %H:%M:%S %Z`
 #### HTTP-date
 The HTTP date format is `%a, %d %b %Y %H:%M:%S %Z`
 <details>
-<summary>Some usefull functions to deal with HTTP time</summary>   
+<summary>Some useful functions to deal with HTTP time</summary>   
 
 ```c
 char date_buf[1000];
@@ -606,4 +653,18 @@ if (t == -1) {
 
 ```
 
+#### How to printf the various things
+Not really useful, but..
+```c
+// es. tcp.c
+printf("%.4d.  // delta_sec (unsigned int)
+   %.6d        // delta_usec
+   %.5d->%.5d  // ports (unsigned short)
+   %.2x        // tcp flags (unsigned char) in hex: es: "12"
+   %.10u       // seq (unsigned int)
+   %.10u       // ack 
+   %.5u        //tcp win   
+   %4.2f\n", delta_sec, delta_usec, htons(tcp->s_port), htons(tcp->d_port), tcp->flags, htonl(tcp->seq) - seqzero, htonl(tcp->ack) - ackzero, htons(tcp->win), (htonl(tcp->ack) - ackzero) / (double)(delta_sec * 1000000 + delta_usec));
+
+```
 
