@@ -53,8 +53,8 @@ int main() {
 		perror("setsockopt");
 		return 1;
 	}
-
-	//CONNESSIONE
+	
+   //CONNESSIONE
 	indirizzo.sin_family = AF_INET;    //IPv4
 	indirizzo.sin_port = htons(7888);  //Porta
 	indirizzo.sin_addr.s_addr = 0;

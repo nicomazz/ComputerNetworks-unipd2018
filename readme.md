@@ -18,14 +18,16 @@ You can find everything that is in this readme through `man`, and the various RF
    - [Checksum calculation](#checksum-calculation)
    - [Convert int IP address in string](#convert-int-ip-address-in-string)
 - [Editor for the exam](#editor-for-the-exam)
+   - [Quickfix and makefile \(aka how not waste time\)](#quickfix-and-makefile-aka-how-not-waste-time)
 - [Past exams](#past-exams)
    - [19 June 2018 \(ping.c\)](#19-june-2018-pingc)
    - [20 June 2018 \(ping.c\)](#20-june-2018-pingc)
+   - [2 September 2016](#2-september-2016)
+   - [15 July 2016 \(ping.c\)](#15-july-2016-pingc)
    - [20 June 2016](#20-june-2016)
    - [1 \(tcp16.c\)](#1-tcp16c)
    - [2 \(wp16.c\)](#2-wp16c)
    - [3 \(ws18.c\)](#3-ws18c)
-   - [15 July 2016 \(ping.c\)](#15-july-2016-pingc)
    - [24 July 2015 \(wc18.c\)](#24-july-2015-wc18c)
    - [26 June 2014](#26-june-2014)
 - [Misc](#misc)
@@ -38,6 +40,7 @@ You can find everything that is in this readme through `man`, and the various RF
    - [socket creation, binding for listening and writing \(like http requests\)](#socket-creation-binding-for-listening-and-writing-like-http-requests)
    - [RAW socket creation, binding for listening and writing \(to deal with tcp/icmp/arp requests directly\)](#raw-socket-creation-binding-for-listening-and-writing-to-deal-with-tcpicmparp-requests-directly)
    - [How to printf the various things](#how-to-printf-the-various-things)
+   - [Useful info](#useful-info)
 
 <!-- /MarkdownTOC -->
 </p>
@@ -331,6 +334,24 @@ int icmp_dimension = dimension-header_dim;
 
 ---
 
+#### 2 September 2016
+Implement an HTTP server that:
+- redirect to a default page if the target resource is not available 
+- Send a temporary unavailable response if the resource is available, and after a second request gives the output.
+
+**Tips**:
+The header `Retry-After` is ignored by most web browser, so the redirect will not take place after 10 seconds, but immediately.
+In the solution there is an array that keeps the state of the connection for each ip.
+
+#### 15 July 2016 (ping.c)
+Implement an ICMP "Destination unreachable" that say that the port is unavailable
+
+**Tips**: 
+you have to send the package in response to a tcp connection. `icmp->type = 3`, `icmp->code=3`.
+And remember to copy in the payload the content of the icmp original payload.
+
+---
+
 #### 20 June 2016
 
 #### 1 (tcp16.c)
@@ -382,14 +403,6 @@ int build_chunk(char * s, int len){
 ---
 
 
-#### 15 July 2016 (ping.c)
-Implement an ICMP "Destination unreachable" that say that the port is unavailable
-
-**Tips**: 
-you have to send the package in response to a tcp connection. `icmp->type = 3`, `icmp->code=3`.
-And remember to copy in the payload the content of the icmp original payload.
-
----
 
 #### 24 July 2015 (wc18.c)
 Implement the `Last-Modified` header of HTTP/1.0
@@ -654,7 +667,9 @@ if (t == -1) {
 ```
 
 #### How to printf the various things
+
 Not really useful, but..
+
 ```c
 // es. tcp.c
 printf("%.4d.  // delta_sec (unsigned int)
@@ -668,3 +683,12 @@ printf("%.4d.  // delta_sec (unsigned int)
 
 ```
 
+
+####  Useful info
+
+- `/etc/services`: To know all the TCP ports available at the application level.
+- `/etc/protocols`
+- `nslookup <URL>`: finds the ip address of the specified URL (**example**: www.google.com)
+- `netstat -rn` shows routing table
+- `traceroute` routes an ip packet in which path it travels by printing the IP of every gateway that decides
+  to drop the packet that was forged with low TTL (time to live, decremented on every hop) count.
