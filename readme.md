@@ -57,7 +57,7 @@ You can find everything that is in this readme through `man`, and the various RF
 
 
 ## Useful links
-- [Here](https://www.stefanoivancich.com/?p=1291) you can find a summary of the most important things to know to pass the exam. 
+- [Here](https://www.stefanoivancich.com/?p=1291) you can find a summary of the most important things to know to pass the exam.
 Anyway, maybe is better to study more in depth every topic.
 - [C socket programming online book](http://alas.matf.bg.ac.rs/manuals/lspe/mode=1.html). There is more than needed, but still interesting.
 
@@ -72,7 +72,7 @@ ip = (struct ip_datagram *)eth->payload;
 
 tcp = (struct tcp_segment *)ip->payload;
 // or
-icmp = (struct icmp_packet *)ip->payload; 
+icmp = (struct icmp_packet *)ip->payload;
 ```
 #### Data types and endianess
 <details>
@@ -90,7 +90,7 @@ To transfer on the network is used Big endian. Most of the intel's cpus are litt
 - if a variable is 1 byte long we don't have endianess problems (obviously)
  </details>
 
- 
+
 #### Ethernet frame
 <details><summary>Ethernet frame</summary>
 <p>
@@ -124,7 +124,7 @@ Header length: check second half of `ver_ihl` attribute. Example: if it's '5', t
 // Datagramma IP
 struct ip_datagram{
    unsigned char ver_ihl;    // first 4 bits: version, second 4 bits: (lenght header)/8
-   unsigned char tos;        //type of service 
+   unsigned char tos;        //type of service
    unsigned short totlen;    // len header + payload
    unsigned short id;        // useful in case of fragmentation
    unsigned short flags_offs;//offset/8 related to the original ip package
@@ -206,14 +206,14 @@ unsigned short checksum( unsigned char * buffer, int len){
    return (unsigned short)0xFFFF-tot;
 }
 ```
-The 2 cases are: 
+The 2 cases are:
 - IP: `ip->checksum=htons(checksum((unsigned char*) ip, 20));`
 `
-- TCP: 
+- TCP:
 ```c
 int TCP_TOTAL_LEN = 20;
 struct tcp_pseudo pseudo; // size of this: 12
-memcpy(pseudo.tcp_segment,tcp,TCP_TOTAL_LEN); 
+memcpy(pseudo.tcp_segment,tcp,TCP_TOTAL_LEN);
 pseudo.zeroes = 0;
 pseudo.ip_src = ip->src;
 pseudo.ip_dst = ip->dst;
@@ -247,7 +247,7 @@ void print_ip(unsigned int ip){
 
 ## Editor for the exam
 I advice VIM. And please, indent your code.
-- `:wq` to save and quit. 
+- `:wq` to save and quit.
 - Press `esc` 2 times if you don't understand what is happening
 - `/query` to search for "query", `n` and `N` to search prev/next result
 
@@ -300,14 +300,14 @@ np : ws18.c
 Pay attention to put a tab before "gcc", and not spaces (if you have expandtab enabled in vim, use `ctrl=v tab`).
 Here `np` is what you want generate (the executable), and `ws18.c` the file to compile. In the line below there is the command to call each time you write `:make` in vim.
 Then, with the `.vimrc` provided above, press `space` (release it) and `b` (**b**uild).
-The command will be excuted, and you will see in the bottom of your code the list of errors. 
+The command will be excuted, and you will see in the bottom of your code the list of errors.
 You can fastly jump in the correct line by pressing enter in each entry.
 To move between the top and bottom split press `CTRL+W` `W`. To close the bottom view (quickfix) `:q`, or `:cw`.
 
 ## Past exams
 You can find the complete exam statement in the site at the beginning of this readme.
 The complete code is in the folders.
- 
+
 <details>
 <summary>Past exams</summary>   
 
@@ -336,7 +336,7 @@ int icmp_dimension = dimension-header_dim;
 
 #### 2 September 2016
 Implement an HTTP server that:
-- redirect to a default page if the target resource is not available 
+- redirect to a default page if the target resource is not available
 - Send a temporary unavailable response if the resource is available, and after a second request gives the output.
 
 **Tips**:
@@ -346,7 +346,7 @@ In the solution there is an array that keeps the state of the connection for eac
 #### 15 July 2016 (ping.c)
 Implement an ICMP "Destination unreachable" that say that the port is unavailable
 
-**Tips**: 
+**Tips**:
 you have to send the package in response to a tcp connection. `icmp->type = 3`, `icmp->code=3`.
 And remember to copy in the payload the content of the icmp original payload.
 
@@ -357,7 +357,7 @@ And remember to copy in the payload the content of the icmp original payload.
 #### 1 (tcp16.c)
 Intercept the first received connection, and print sequence and acknowledge numbers of them. Then reconstruct the 2 streams in 2 different buffers, and print their content.
 
-**Tips**: 
+**Tips**:
 To intercept the end of the connection, just check if a package contains the FIN bit at 1 (after having filtered all the packages, maintaining only the ones belonging to the first connection).
 Use the tcp sequence field to copy the contnet at the right offset in the 2 buffers.
 DON'T DUPLICATE CODE.
@@ -377,7 +377,7 @@ If the condition of the Content-type is fullfilled then just forward the contnet
 #### 3 (ws18.c)
 Send HTTP response with a chunked body.
 
-**Tips**: 
+**Tips**:
 Add `Content-Type: text/plain\r\nTransfer-Encoding: chunked\r\n` to HTTP headers.
 Then, to build each chunk to send, you can use something like:
 <details>
@@ -407,7 +407,7 @@ int build_chunk(char * s, int len){
 #### 24 July 2015 (wc18.c)
 Implement the `Last-Modified` header of HTTP/1.0
 
-**Tips**: 
+**Tips**:
 Some useful time conversion functions in the misc section. It could also have been done without the need of these conversions.
 The HTTP date format is `%a, %d %b %Y %H:%M:%S %Z`
 
@@ -421,6 +421,11 @@ The HTTP date format is `%a, %d %b %Y %H:%M:%S %Z`
 
 ---
 
+### 26 June 2014
+Modify icmp echo to split the request into two IP datagrams, one with a payload
+size of 16 bytes and the other one with the requested payload size.
+
+---
 </details>
 
 
@@ -469,7 +474,7 @@ unsigned char expired(char * uri, char * last_modified){
 </details>
 
 
-#### rewind 
+#### rewind
 `rewind(FILE*)` set the cursor at the beginning
 
 #### Read a file and forward it
@@ -535,13 +540,13 @@ from hostname (like www.google.it) to ip address
 ```c
 /**
 struct hostent {
-   char  *h_name;            // official name of host 
-   char **h_aliases;         // alias list 
-   int    h_addrtype;        // host address type 
-   int    h_length;          // length of address 
-   char **h_addr_list;       // list of addresses 
+   char  *h_name;            // official name of host
+   char **h_aliases;         // alias list
+   int    h_addrtype;        // host address type
+   int    h_length;          // length of address
+   char **h_addr_list;       // list of addresses
 }
-#define h_addr h_addr_list[0] // for backward compatibility 
+#define h_addr h_addr_list[0] // for backward compatibility
 */
 struct hostent *he;
 he = gethostbyname(hostname);
@@ -595,7 +600,7 @@ if (t == -1) {
    perror("Bind fallita");
    return 1;
 }
-t = listen(s, 
+t = listen(s,
 // backlog defines the maximum length for the queue of pending connections.
    10);
 if (t == -1) {
@@ -638,9 +643,9 @@ At the end, remember to close all the sockets with `close(s)` (where s in the so
 ```c
 int s = socket(
 //AF_PACKET       Low level packet interface       packet(7)
-   AF_PACKET, 
+   AF_PACKET,
 //SOCK_RAW        Provides raw network protocol access.
-   SOCK_RAW, 
+   SOCK_RAW,
 // When protocol is set to htons(ETH_P_ALL), then all protocols are received.
    htons(ETH_P_ALL));
 
@@ -677,7 +682,7 @@ printf("%.4d.  // delta_sec (unsigned int)
    %.5d->%.5d  // ports (unsigned short)
    %.2x        // tcp flags (unsigned char) in hex: es: "12"
    %.10u       // seq (unsigned int)
-   %.10u       // ack 
+   %.10u       // ack
    %.5u        //tcp win   
    %4.2f\n", delta_sec, delta_usec, htons(tcp->s_port), htons(tcp->d_port), tcp->flags, htonl(tcp->seq) - seqzero, htonl(tcp->ack) - ackzero, htons(tcp->win), (htonl(tcp->ack) - ackzero) / (double)(delta_sec * 1000000 + delta_usec));
 
