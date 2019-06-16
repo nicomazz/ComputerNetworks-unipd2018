@@ -101,7 +101,8 @@ int main() {
          printf("\n\nCREDENTIALS: %s\n\n", credentials);
 
       }
-
+      // User id: Aladdin
+      // pwd: open sesame
       if(!flag || strcmp("QWxhZGRpbjpvcGVuIHNlc2FtZQ==", credentials)) {
          sprintf(response, "HTTP/1.1 401 Unauthorized\r\nConnection:close\r\nWWW-Authenticate: Basic realm=\"WallyWorld\"\r\n\r\n");
          write(cs, response, strlen(response));

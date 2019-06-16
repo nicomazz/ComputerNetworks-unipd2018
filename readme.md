@@ -428,6 +428,24 @@ size of 16 bytes and the other one with the requested payload size.
 ---
 </details>
 
+## Homeworks
+During the course some homeworks (not mandatory) are assigned. Even if they are not exams they have more or less the same level of difficulty.
+
+
+<details>
+<summary>Homeworks</summary>
+
+#### ping.c
+Implement a traceroute program, tracking each node the packets visits before reching the destination.
+Hint: when the time to live becomes 0 a node discards the packet and send a "Time Exceeded Message" to the source IP address of the packet (see RFC793).
+
+#### ws.c
+use the HTTP header `WWW-Authenticate` to require the access credentials to the client.
+
+#### wc.c
+implement a client that accepts chunked content.
+
+</details>
 
 # Misc
 
