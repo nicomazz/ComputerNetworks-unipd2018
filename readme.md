@@ -39,6 +39,7 @@ You can find everything that is in this readme through `man`, and the various RF
    - [gethostbyname](#gethostbyname)
    - [socket creation, binding for listening and writing \(like http requests\)](#socket-creation-binding-for-listening-and-writing-like-http-requests)
    - [RAW socket creation, binding for listening and writing \(to deal with tcp/icmp/arp requests directly\)](#raw-socket-creation-binding-for-listening-and-writing-to-deal-with-tcpicmparp-requests-directly)
+   - [Useful utils to print packet contents](#useful-utils-to-print-packet-contents)
    - [How to printf the various things](#how-to-printf-the-various-things)
    - [Useful info](#useful-info)
 
