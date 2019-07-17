@@ -1,0 +1,118 @@
+﻿FACOLTA’ DI SCIENZE STATISTICHE 
+RETI DI CALCOLATORI 
+prof. Massimo Maresca, prof. Nicola Zingirian
+1 Luglio 2010
+
+
+Il datagram IP costruito dal programma icmp_ip.c sviluppato a lezione è dotato di un header a lunghezza minima possibile (20 caratteri), poiché privo di campi opzionali.  Tuttavia, il protocollo IP consente di estendere l’header IP, aggiungendo alcuni campi opzionali che permettono di richiedere o inviare informazioni aggiuntive ai nodi di rete attraversati dal pacchetto.  Si intende ora esplorare questa possibilità.
+
+Si modifichi il programma icmp_ip.c sviluppato a lezione in modo tale che costruisca il datagram IP aggiungendo all’header IP il campo opzionale di tipo “Record Route” (descritto nella RFC 791, v. sotto).  Questo campo riserva un’area libera (chiamata route data) all’interno dell’ header IP esteso, destinata a contenere la lista degli indirizzi IP dei nodi attraversati dal pacchetto. Ciascun nodo attraversato, infatti, in presenza dell’opzione “Record Route”, scrive il proprio indirizzo IP nell’area route data in coda agli indirizzi IP già salvati dai nodi precedenti. I campi length e pointer permettono di gestire l'area di memoria durante il viaggio del pacchetto, secondo quanto riportato nel testo tratto dalla RFC 791:  
+
+Record Route 
+
+        +--------+--------+--------+---------//--------+
+        |00000111| length | pointer|     route data    |
+        +--------+--------+--------+---------//--------+
+          Type=7
+
+        The record route option provides a means to record the route of
+        an internet datagram.
+
+        The option begins with the option type code.  The second octet
+        is the option length which includes the option type code and the
+        length octet, the pointer octet, and length – 3 octets of route
+        data.  The third octet is the pointer into the route data
+        indicating the octet which begins the next area to store a route
+        address.  The pointer is relative to this option, and the
+        smallest legal value for the pointer is 4.
+
+        A recorded route is composed of a series of internet addresses.
+        Each internet address is 32 bits or 4 octets.  If the pointer is
+        greater than the length, the recorded route data area is full.
+        The originating host must compose this option with a large
+        enough route data area to hold all the address expected.  The
+        size of the option does not change due to adding addresses.  The
+        intitial contents of the route data area must be zero.
+
+        When an internet module routes a datagram it checks to see if
+        the record route option is present.  If it is, it inserts its
+        own internet address as known in the environment into which this
+        datagram is being forwarded into the recorded route begining at
+        the octet indicated by the pointer, and increments the pointer
+        by four.
+
+        If the route data area is already full (the pointer exceeds the
+        length) the datagram is forwarded without inserting the address
+        into the recorded route.  If there is some room but not enough
+        room for a full address to be inserted, the original datagram is
+        considered to be in error and is discarded.  In either case an
+        ICMP parameter problem message may be sent to the source host.       
+
+
+Il candidato saprà di aver formato bene l’header IP esteso, se verificherà che la echo reply di ritorno dalla destinazione porterà nell’header IP l’opzione “Record Route” contenente nel campo “route data” la lista di indirizzi IP dei nodi attraversati durante il percorso della echo request. 
+
+ Ai fini dello svolgimento del compito si tenga altresì presente quanto segue:
+    • Riservare la dimensione massima possibile di bytes a questo campo, tenendo conto di tutti i vincoli dello standard IP
+    • Inviare il pacchetto al nodo 147.162.2.100
+    • Se l’opzione non è formata correttamente, il primo nodo intermedio che  riconosce un errore invia al nostro nodo un messaggio ICMP di tipo 12 (0xC) descritto dalla RFC792 (v. seguente)
+
+0                   1                   2                   3
+    0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |     Type      |     Code      |          Checksum             |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |    Pointer    |                   unused                      |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |      Internet Header + 64 bits of Original Data Datagram      |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+   IP Fields:
+
+   Destination Address
+
+      The source network and address from the original datagram's data.
+
+   ICMP Fields:
+
+   Type
+
+      12
+
+   Code
+
+      0 = pointer indicates the error.
+
+   Checksum
+
+      The checksum is the 16-bit ones's complement of the one's
+      complement sum of the ICMP message starting with the ICMP Type.
+      For computing the checksum , the checksum field should be zero.
+      This checksum may be replaced in the future.
+
+   Pointer
+
+      If code = 0, identifies the octet where an error was detected.
+
+   Internet Header + 64 bits of Data Datagram
+
+      The internet header plus the first 64 bits of the original
+      datagram's data.  This data is used by the host to match the
+      message to the appropriate process.  If a higher level protocol
+      uses port numbers, they are assumed to be in the first 64 data
+      bits of the original datagram's data.
+
+   Description
+
+      If the gateway or host processing a datagram finds a problem with
+      the header parameters such that it cannot complete processing the
+      datagram it must discard the datagram.  One potential source of
+      such a problem is with incorrect arguments in an option.  The
+      gateway or host may also notify the source host via the parameter
+      problem message.  This message is only sent if the error caused
+      the datagram to be discarded.
+
+      The pointer identifies the octet of the original datagram's header
+      where the error was detected (it may be in the middle of an
+      option).  For example, 1 indicates something is wrong with the
+      Type of Service, and (if there are options present) 20 indicates
+      something is wrong with the type code of the first option.

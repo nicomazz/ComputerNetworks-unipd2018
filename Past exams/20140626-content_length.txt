@@ -1,0 +1,9 @@
+Universit degli Studi di Padova
+Dipartimento di Ingegneria dell’informazione
+Esame di Reti di Calcolatori - 26 Giugno 2014
+Prof. ing. Nicola Zingirian
+
+Si modifichi il programma che implementa il Client Web in modo tale che sia in grado di gestire
+l’header Content-Length descritto nella RFC 1945 alla sezione 10.4
+
+

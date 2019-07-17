@@ -1,0 +1,29 @@
+Università degli Studi di Padova - Dipartimento di Ingegneria Informatica
+Esame di Reti di Calcolatori - 20 Giugno 2018
+Prof. ing. Nicola Zingirian
+
+Il server cloud è ora configurato in modo tale da ​non rispondere​ alle richieste di echo.
+Si provi dal ​pc locale del laboratorio​ ad effettuare il comando
+ping 88.80.187.84
+e si noterà che non risponde
+
+Si modifichi il programma ​ping.c sviluppato a lezione in modo tale che, quando riceve un echo icmp, risponda
+con una echo reply.
+Se il programma e’ corretto si notera’ che il comando ping dal PC locale del laboratorio comincia a funzionare
+
+ATTENZIONE​ per evitare interferenze tra i diversi programmi si verifichi il funzionamento come segue:
+
+1) Si effettui il comando sul pc locale del laboratorio:
+    ping -s ​XYZ 88.80.187.84
+    Verificandone sul manuale il significato
+XYZ ​sono le ultime 3 cifre del numero di matricola con le seguenti eccezioni da
+applicare in cascata
+● Eccezione 1 : se ​XYZ ​< 100 usare il numero 1​XYZ​).
+● Eccezione 2 : se ​XYZ ​e’ pari usare il numero successivo (1)​XYZ​+1
+
+2) Si faccia in modo che il proprio programma risponda ​solo alle richieste che
+hanno lunghezza di payload​ ​XYZ
+
+CONSEGNA 11.15
+
+

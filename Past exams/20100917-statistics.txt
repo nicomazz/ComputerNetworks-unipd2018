@@ -1,0 +1,37 @@
+﻿Facoltà di Scienze Statistiche 
+
+PROVA SCRITTA DI RETI DI CALCOLATORI II 
+17 Settembre 2010 
+
+Prof. M.Maresca N.Zingirian 
+
+
+Si scriva un programma in grado di ricevere i frame ethernet dalla rete e calcoli le seguenti statistiche :
+
+su tutti i pacchetti ethernet: 
+% frame contenenti pacchetti IP 
+% frame contenenti pacchetti ARP
+% frame contenenti pacchetti né IP né ARP
+
+Su tutti i pacchetti IP
+% pacchetti contententi segmenti TCP
+% pacchetti contententi segmenti UDP
+% pacchetti contententi  pacchetti ICMP
+% pacchetti contententi altro payload
+
+
+Il programma riceve 1000 pacchetti dalla rete, effettua il conteggio e, dopo aver ricevuto il millesimo scrive le statistiche. 
+
+
+
+
+
+
+
+
+
+
+
+
+ 
+

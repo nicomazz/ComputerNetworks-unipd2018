@@ -1,0 +1,34 @@
+﻿
+
+
+ESAME DI RETI DI CALCOLATORI
+Corso di Laurea Triennale in Ingegneria Informatica
+22 Luglio 2014
+Prof. Nicola Zingirian
+
+
+Si modifichi il programma sviluppato durante il corso che implementa la funzione di ICMP echo in modo tale che l’echo request venga veicolata da due frammenti di un pacchetto IP, il primo avente un payload di lunghezza 16 bytes e il secondo avente un payload della lunghezza necessaria.  Se ne verifichi il corretto funzionamento nella rete.
+
+
+
+
+
+
+
+
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

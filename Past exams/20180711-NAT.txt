@@ -1,0 +1,30 @@
+Università degli Studi di Padova - Dipartimento di Ingegneria Informatica
+Esame di Reti di Calcolatori - 11 Luglio 2018
+Prof. ing. Nicola Zingirian
+
+Si modifichi il programma ​ping.c ​in modo che funzioni come un NAT - Network Address Translator.
+Quando arriva una richiesta di connessione TCP da un client Web esterno all’indirizzo IP 88.80.187.84 e port
+2XXXX1 il programma inoltra quel pacchetto TCP/IP (e tutti i successivi di quella connessione) verso il server
+web di google (216.58.204.68) traducendone opportunamente indirizzi e port, ricalcolando lo pseudo-header, e
+ogni volta che un pacchetto TCP/IP di quella connessione torna dal server di Google lo inoltra al client web
+esterno ritraducendo in modo opportuno indirizzi e port.
+Si faccia riferimento alle ​RFC 791​ e ​RFC 793​.
+Il programma deve permettere ad un browser sul PC locale di effettuare l’accesso ​http://88.80.187.84:2XXXX e
+di vedere funzionare il servizio di Google.
+Si osservi il comportamento del servizio di Google e si veda quali altre trasformazioni siano necessarie per farlo
+funzionare in modo trasparente.
+
+Per evitare conflitti il port locale utilizzato per la connessione verso il server di Google dev’essere
+3XXXX2
+
+________
+
+CONSEGNA ORE 17:10
+
+1
+2
+
+Si intenda XXXX come le ultime 4 cifre del suo numero di matricola
+Si intenda XXXX come le ultime 4 cifre del suo numero di matricola
+
+

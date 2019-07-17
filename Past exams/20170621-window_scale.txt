@@ -1,0 +1,162 @@
+﻿
+Università degli Studi di Padova -Dipartimento di Ingegneria Informatica 
+Esame di Reti di Calcolatori - 21 Giugno 2017
+Prof. Ing. Nicola Zingirian
+
+
+
+Si modifichi il programma tcp.c in modo che sia in grado di visualizzare su schermo, per ogni pacchetto TCP acquisito, la dimensione della finestra del controllo di flusso del TCP, tenendo conto della option del TCP "window scale” indicata nel capitolo 2 della RFC 7323, riportato nel seguito, che permette di superare il limite dei 16 bit del campo Window del segmento tcp (chiamato SEG.WND).   
+Si scarichi anche la RFC793.  https://tools.ietf.org/html/rfc793
+
+Si entri nel server cloud con il comando ssh nome_utente@88.80.187.84
+
+CONSEGNA 17.10
+
+
+TCP Window Scale Option
+
+2.1.  Introduction
+
+   The window scale extension expands the definition of the TCP window
+   to 30 bits and then uses an implicit scale factor to carry this
+   30-bit value in the 16-bit window field of the TCP header (SEG.WND in
+   [RFC0793]).  The exponent of the scale factor is carried in a TCP
+   option, Window Scale.  This option is sent only in a <SYN> segment (a
+   segment with the SYN bit on), hence the window scale is fixed in each
+   direction when a connection is opened.
+
+   The maximum receive window, and therefore the scale factor, is
+   determined by the maximum receive buffer space.  In a typical modern
+   implementation, this maximum buffer space is set by default but can
+   be overridden by a user program before a TCP connection is opened.
+   This determines the scale factor, and therefore no new user interface
+   is needed for window scaling.
+
+2.2.  Window Scale Option
+
+   The three-byte Window Scale option MAY be sent in a <SYN> segment by
+   a TCP.  It has two purposes: (1) indicate that the TCP is prepared to
+   both send and receive window scaling, and (2) communicate the
+   exponent of a scale factor to be applied to its receive window.
+   Thus, a TCP that is prepared to scale windows SHOULD send the option,
+   even if its own scale factor is 1 and the exponent 0.  The scale
+   factor is limited to a power of two and encoded logarithmically, so
+   it may be implemented by binary shift operations.  The maximum scale
+   exponent is limited to 14 for a maximum permissible receive window
+   size of 1 GiB (2^(14+16)).
+
+   TCP Window Scale option (WSopt):
+
+   Kind: 3
+
+   Length: 3 bytes
+
+          +---------+---------+---------+
+          | Kind=3  |Length=3 |shift.cnt|
+          +---------+---------+---------+
+               1         1         1
+
+   This option is an offer, not a promise; both sides MUST send Window
+   Scale options in their <SYN> segments to enable window scaling in
+   either direction.  If window scaling is enabled, then the TCP that
+   sent this option will right-shift its true receive-window values by
+   'shift.cnt' bits for transmission in SEG.WND.  The value 'shift.cnt'
+
+
+
+Borman, et al.               Standards Track                    [Page 8]
+ 
+RFC 7323           TCP Extensions for High Performance    September 2014
+
+
+   MAY be zero (offering to scale, while applying a scale factor of 1 to
+   the receive window).
+
+   This option MAY be sent in an initial <SYN> segment (i.e., a segment
+   with the SYN bit on and the ACK bit off).  If a Window Scale option
+   was received in the initial <SYN> segment, then this option MAY be
+   sent in the <SYN,ACK> segment.  A Window Scale option in a segment
+   without a SYN bit MUST be ignored.
+
+   The window field in a segment where the SYN bit is set (i.e., a <SYN>
+   or <SYN,ACK>) MUST NOT be scaled.
+
+2.3.  Using the Window Scale Option
+
+   A model implementation of window scaling is as follows, using the
+   notation of [RFC0793]:
+
+   o  The connection state is augmented by two window shift counters,
+      Snd.Wind.Shift and Rcv.Wind.Shift, to be applied to the incoming
+      and outgoing window fields, respectively.
+
+   o  If a TCP receives a <SYN> segment containing a Window Scale
+      option, it SHOULD send its own Window Scale option in the
+      <SYN,ACK> segment.
+
+   o  The Window Scale option MUST be sent with shift.cnt = R, where R
+      is the value that the TCP would like to use for its receive
+      window.
+
+   o  Upon receiving a <SYN> segment with a Window Scale option
+      containing shift.cnt = S, a TCP MUST set Snd.Wind.Shift to S and
+      MUST set Rcv.Wind.Shift to R; otherwise, it MUST set both
+      Snd.Wind.Shift and Rcv.Wind.Shift to zero.
+
+   o  The window field (SEG.WND) in the header of every incoming
+      segment, with the exception of <SYN> segments, MUST be left-
+      shifted by Snd.Wind.Shift bits before updating SND.WND:
+
+                    SND.WND = SEG.WND << Snd.Wind.Shift
+
+      (assuming the other conditions of [RFC0793] are met, and using the
+      "C" notation "<<" for left-shift).
+
+   o  The window field (SEG.WND) of every outgoing segment, with the
+      exception of <SYN> segments, MUST be right-shifted by
+      Rcv.Wind.Shift bits:
+
+                    SEG.WND = RCV.WND >> Rcv.Wind.Shift
+
+
+
+Borman, et al.               Standards Track                    [Page 9]
+ 
+RFC 7323           TCP Extensions for High Performance    September 2014
+
+
+   TCP determines if a data segment is "old" or "new" by testing whether
+   its sequence number is within 2^31 bytes of the left edge of the
+   window, and if it is not, discarding the data as "old".  To insure
+   that new data is never mistakenly considered old and vice versa, the
+   left edge of the sender's window has to be at most 2^31 away from the
+   right edge of the receiver's window.  The same is true of the
+   sender's right edge and receiver's left edge.  Since the right and
+   left edges of either the sender's or receiver's window differ by the
+   window size, and since the sender and receiver windows can be out of
+   phase by at most the window size, the above constraints imply that
+   two times the maximum window size must be less than 2^31, or
+
+                             max window < 2^30
+
+   Since the max window is 2^S (where S is the scaling shift count)
+   times at most 2^16 - 1 (the maximum unscaled window), the maximum
+   window is guaranteed to be < 2^30 if S <= 14.  Thus, the shift count
+   MUST be limited to 14 (which allows windows of 2^30 = 1 GiB).  If a
+   Window Scale option is received with a shift.cnt value larger than
+   14, the TCP SHOULD log the error but MUST use 14 instead of the
+   specified value.  This is safe as a sender can always choose to only
+   partially use any signaled receive window.  If the receiver is
+   scaling by a factor larger than 14 and the sender is only scaling by
+   14, then the receive window used by the sender will appear smaller
+   than it is in reality.
+
+   The scale factor applies only to the window field as transmitted in
+   the TCP header; each TCP using extended windows will maintain the
+   window values locally as 32-bit numbers.  For example, the
+   "congestion window" computed by slow start and congestion avoidance
+   (see [RFC5681]) is not affected by the scale factor, so window
+   scaling will not introduce quantization into the congestion window.
+
+
+
