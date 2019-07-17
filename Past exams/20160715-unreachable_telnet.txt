@@ -1,0 +1,30 @@
+﻿
+Università degli Studi di Padova -Dipartimento di Ingegneria Informatica 
+Esame di Reti di Calcolatori - 15 Luglio 2016
+Prof. ing. Nicola Zingirian
+
+Il server cloud (88.80.187.84) e’ stato configurato per non rispondere alle richieste di connessione TCP destinate ai port che ricadono nel range [20000:30000].  In seguito a tale configurazione ogni richiesta di connessione destinata a tali port non ottiene risposta. Modificare il programma ping16.c sviluppato durante il corso in modo tale che sia in grado di generare un messaggio ICMP di “Destination Unreachable” che comunichi che il port non e’ disponibile. 
+
+Al fine di verificare l’effettivo funzionamento del programma utilizzare da un client locale il comando 
+
+telnet 88.80.187.84 <numero_port>
+
+Se il comando telnet rimane appeso, significa che non ha ricevuto il messaggio ICMP (va quindi terminato con i tasti CTRL+C).
+Se il comando termina con indicazione di mancata raggiungibilita’, significa che il messaggio ICMP e’ stato ricevuto e quindi il test e’ riuscito. 
+
+NB: Si scelga  un opportuno numero di port individuale compreso tra 20000 e 30000 (ossia 2XXXX dove XXXX sono le ultime 4 cifre del proprio numero di matricola) e predispondendo il programma a reagire solo per quel determinato port. 
+
+
+Fare riferimento ai documenti RFC792 e RFC793.
+
+
+
+
+
+
+
+
+   
+
+
+ 

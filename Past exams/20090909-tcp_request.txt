@@ -1,0 +1,42 @@
+﻿Facoltà di Scienze Statistiche 
+
+PROVA SCRITTA DI RETI DI CALCOLATORI II 
+9 Settembre 2009 
+
+Prof. N.Zingirian 
+
+
+
+Si modifichi il programma nodo_ip.c, in modo tale che, anziché inviare una richiesta di tipo icmp echo request su un pacchetto IP, invii una richiesta di connessione TCP a un servizio web su un pacchetto IP indirizzato a 147.162..X e attenda ed elabori la risposta.
+
+La richiesta di connessione TCP ha il seguente formato:
+
+
+Con i seguenti requisiti
+
+    • Il flag SYN è posto a 1 per indicare la richiesta di connessione 
+    • Il port destinazione è quello standard del servizio web
+    • Il port sorgente è un numero arbitrario sempre diverso ad ogni richiesta di connessione
+    • Il campo Sequence contiene un numero arbitrario sempre diverso ad ogni richiesta di connessione. 
+    • Il campo Acknowledgment è irrilevante
+    • Il campo checksum viene calcolato utilizzando lo stesso algoritmo del checksum del pacchetto IP, e applicato ai seguenti campi: indirizzo IP sorgente (contenuto nel pacchetto IP), indirizzo IP (contenuto nel pacchetto IP) destinazione  port sorgente e port destinazione (contenuti nel segmento TCP). 
+    • Il campo urgent pointer è messo a 0. 
+    • Il campo advertised window 0xFFFF
+    • Il campo payload è vuoto.
+    • Nessuna option.
+
+
+Per verificare il corretto funzionamento, controllare in modo automatico che venga ricevuta una segmento TCP in risposta avente i seguenti requisiti:
+
+    • Che il port sorgente corrisponda al port standard del servizio web
+    • Che il port destinazione, corrisponda al port sorgente indicato nella richiesta 
+    • Che il campo Acknowledgment riporti un pari al numero Sequence riportato sulla richiesta incrementato di 1
+    • Abbia i flag SYN e ACK posti a 1. 
+
+
+
+
+ 
+
+ 
+

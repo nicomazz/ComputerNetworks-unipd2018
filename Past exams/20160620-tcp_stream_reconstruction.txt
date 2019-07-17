@@ -1,0 +1,15 @@
+        	Dipartimento di Ingegneria dell'Informazione
+                    PROVA DI ESAME DI RETI DI CALCOLATORI
+		       	    20 Giugno 2016
+                         prof. Nicola Zingirian
+			
+
+Si modifichi il programma tcp16.c in modo tale che:
+
+
+1) Visualizzi i numeri di sequenza e acknowledgment dei pacchetti appartenenti unicamente alla prima connessione che intercetta
+
+
+2) Ricostruisca ciascuno dei due stream su due buffer distinti e ne stampi su schermo i contenuti al termine della connessione.
+
+

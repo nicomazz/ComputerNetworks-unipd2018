@@ -1,0 +1,15 @@
+Università degli Studi di Padova -Dipartimento di Ingegneria Informatica
+Esame di Reti di Calcolatori - 19 giugno 2018
+Prof. ing. Nicola Zingirian
+Il server cloud è configurato in modo tale da non rispondere alle richieste di connessione TCP per i port nel
+range da 19000 19999.
+Si lavori con il port 19XYZ dove XYZ sono gli ultimi 3 numeri del proprio numero di matricola.
+Dal PC locale si effettui tramite il comando
+telnet 88.80.187.84 19XYZ
+Si vedrà che non si riceve alcuna risposta nè di accettazione nè di rifiuto di connessione.
+Si modifichi il programma ​ping sviluppato a lezione in modo tale che ricevendo una richiesta di connessione
+TCP (SYN) sul port 19XYZ risponda opportunamente (SYN+ACK) secondo il protocollo TCP ​RFC 793
+
+CONSEGNA ORE 15:00
+
+

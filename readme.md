@@ -39,6 +39,7 @@ You can find everything that is in this readme through `man`, and the various RF
    - [gethostbyname](#gethostbyname)
    - [socket creation, binding for listening and writing \(like http requests\)](#socket-creation-binding-for-listening-and-writing-like-http-requests)
    - [RAW socket creation, binding for listening and writing \(to deal with tcp/icmp/arp requests directly\)](#raw-socket-creation-binding-for-listening-and-writing-to-deal-with-tcpicmparp-requests-directly)
+   - [Useful utils to print packet contents](#useful-utils-to-print-packet-contents)
    - [How to printf the various things](#how-to-printf-the-various-things)
    - [Useful info](#useful-info)
 
@@ -689,6 +690,121 @@ if (t == -1) {
 
 ```
 
+#### Useful utils to print packet contents
+<details>
+<summary> Ethernet packet </summary>
+	
+```c
+void stampa_eth( struct eth_frame* e ){
+	printf( "\n\n ***** PACCHETTO Ethernet *****\n" );
+	printf( "Mac destinazione: %x:%x:%x:%x:%x:%x\n", e->dst[0], e->dst[1], e->dst[2], e->dst[3], e->dst[4], e->dst[5] );
+	printf( "Mac sorgente: %x:%x:%x:%x:%x:%x\n", e->src[0], e->src[1], e->src[2], e->src[3], e->src[4], e->src[5] );
+	printf( "EtherType: 0x%x\n", htons( e->type ) );
+}
+```
+</details>
+
+<details>
+<summary> IP datagram </summary>
+	
+```c
+void stampa_ip( struct ip_datagram* i ){
+	unsigned int ihl = ( i->ver_ihl & 0x0F) * 4; // Lunghezza header IP
+	unsigned int totlen = htons( i->totlen );    // Lunghezza totale pacchetto
+	unsigned int opt_len = ihl-20;         // Lunghezza campo opzioni
+	
+	printf( "\n\n ***** PACCHETTO IP *****\n" );
+	printf( "Version: %d\n", i->ver_ihl & 0xF0 );
+	printf( "IHL (bytes 60max): %d\n", ihl );
+	printf( "TOS: %d\n", i->tos );
+	printf( "Lunghezza totale: %d\n", totlen );
+	printf( "ID: %x\n", htons( i->id ) );
+	unsigned char flags = (unsigned char)( htons( i->flag_offs) >>  13);
+	printf( "Flags: %d | %d | %d \n", flags & 4, flags & 2, flags & 1 );
+	printf( "Fragment Offset: %d\n", htons( i->flag_offs) & 0x1FFF  );
+	printf( "TTL: %d\n", i->ttl );
+	printf( "Protocol: %d\n", i->proto );
+	printf( "Checksum: %x\n", htons( i->checksum ) );
+	
+	unsigned char* saddr = ( unsigned char* )&i->saddr;
+	unsigned char* daddr = ( unsigned char* )&i->daddr;
+	
+	printf( "IP Source: %d.%d.%d.%d\n", saddr[0], saddr[1], saddr[2], saddr[3] );
+	printf( "IP Destination: %d.%d.%d.%d\n", daddr[0], daddr[1], daddr[2], daddr[3] );
+	
+	if( ihl > 20 ){
+		// Stampa opzioni
+		printf( "Options: " );
+		for(int j=0; j < opt_len ; j++ ){
+			printf("%.3d(%.2x) ", i->payload[j], i->payload[j]);
+		}
+		printf( "\n" );
+	}
+}
+```
+</details>
+
+<details>
+<summary> ARP </summary>
+	
+```c
+void stampa_arp( struct arp_packet* a ){
+	printf( "\n\n ***** PACCHETTO ARP *****\n" );
+	printf( "Hardware type: %d\n", htons( a->htype ) );
+	printf( "Protocol type: %x\n", htons( a->ptype ) );
+	printf( "Hardware Addr len: %d\n", a->hlen );
+	printf( "Protocol Addr len: %d\n", a->plen );
+	printf( "Operation: %d\n", htons( a->op ) );
+	printf( "HW Addr sorgente: %x:%x:%x:%x:%x:%x\n", a->hsrc[0], a->hsrc[1], a->hsrc[2], a->hsrc[3], a->hsrc[4], a->hsrc[5] );
+	printf( "IP Source: %d.%d.%d.%d\n", a->psrc[0], a->psrc[1], a->psrc[2], a->psrc[3] );
+	printf( "HW Addr Destinazione: %x:%x:%x:%x:%x:%x\n", a->hdst[0], a->hdst[1], a->hdst[2], a->hdst[3], a->hdst[4], a->hdst[5] );	
+	printf( "IP Dest: %d.%d.%d.%d\n", a->pdst[0], a->pdst[1], a->pdst[2], a->pdst[3] );
+}
+```
+</details>
+
+<details>
+<summary> ICMP content </summary>
+	
+```c
+void stampa_icmp( struct icmp_packet* i ){
+	printf( "\n\n ***** PACCHETTO ICMP *****\n" );
+	printf( "Type: %d\n", i->type );
+	printf( "Code: %d\n", i->code );
+	printf( "Code: 0x%x\n", htons( i->checksum ) );
+	printf( "ID: %d\n", htons(i->id) );
+	printf( "Sequence: %d\n", htons(i->seq) );
+}
+```
+</details>
+
+<details>
+<summary> TCP </summary>
+	
+```c
+void stampa_tcp( struct tcp_segment* t ){
+	printf( "\n\n ***** PACCHETTO TCP *****\n" );
+	printf( "Source Port: %d\n", htons( t->s_port ) );
+	printf( "Source Port: %d\n", htons( t->d_port ) );
+	printf( "Sequence N: %d\n", ntohl( t->seq ) );
+	printf( "ACK: %d\n", ntohl( t->ack ) );
+	printf( "Data offset (bytes): %d\n", ( t->d_offs_res >> 4 ) * 4 );
+	printf( "Flags: " );
+	printf( "CWR=%d | ", (t->flags & 0x80) >> 7 );
+	printf( "ECE=%d | ", (t->flags & 0x40) >> 6 );
+	printf( "URG=%d | ", (t->flags & 0x20) >> 5 );
+	printf( "ACK=%d | ", (t->flags & 0x10) >> 4 );
+	printf( "PSH=%d | ", (t->flags & 0x08) >> 3 );
+	printf( "RST=%d | ", (t->flags & 0x04) >> 2 );
+	printf( "SYN=%d | ", (t->flags & 0x02) >> 1 );
+	printf( "FIN=%d\n",  (t->flags & 0x01) );
+	printf( "Windows size: %d\n", htons( t->win ) );
+	printf( "Checksum: 0x%x\n", htons( t->checksum ) );
+	printf( "Urgent pointer: %d\n", htons( t->urgp ) );
+}
+```
+</details>
+
 #### How to printf the various things
 
 Not really useful, but..
@@ -705,7 +821,6 @@ printf("%.4d.  // delta_sec (unsigned int)
    %4.2f\n", delta_sec, delta_usec, htons(tcp->s_port), htons(tcp->d_port), tcp->flags, htonl(tcp->seq) - seqzero, htonl(tcp->ack) - ackzero, htons(tcp->win), (htonl(tcp->ack) - ackzero) / (double)(delta_sec * 1000000 + delta_usec));
 
 ```
-
 
 ####  Useful info
 

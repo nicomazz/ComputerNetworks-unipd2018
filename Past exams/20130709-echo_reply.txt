@@ -1,0 +1,19 @@
+ESAME DI RETI DI CALCOLATORI
+Corso di Laurea Triennale in Ingegneria Informatica
+09 Luglio 2013
+Prof. Nicola Zingirian
+Si modifichi il programma di invio/attesa di messaggio ICMP Echo Request/Response
+sviluppato durante il corso in modo che il programma - anziché inviare una Echo Request
+al nodo remoto - sia al contrario in grado di rispondere ad una Echo Request proveniente
+da un nodo esterno.
+Il programma modificato si comporterà come segue:
+1. Si blocca in attesa di una ICMP Echo Request
+2. Quando riceve una Echo Request
+a) stampa su schermo l’indirizzo IP del nodo remoto che l’ha inviata
+b) invia una Echo Response secondo le modalità previste dal protocollo ICMP
+(RFC 791)
+c) termina l’esecuzione
+Effettuare il test del programma modificato attraverso il comando “ping” eseguito su una
+macchina remota verso il nodo “lab” e commentare i risultati.
+
+
